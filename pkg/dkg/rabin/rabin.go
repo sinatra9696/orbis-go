@@ -263,7 +263,7 @@ func (d *dkg) initCommon(ctx context.Context) error {
 		return err
 	}
 	// TODO: remove this sleep
-	time.Sleep(2 * time.Second)
+	// time.Sleep(3 * time.Second)
 	log.Infof("registered to namespace %s", d.bbnamespace)
 
 	return d.queryBulletinBacklog(ctx)
