@@ -135,7 +135,7 @@ func (b *Bulletin) ReadByString(ctx context.Context, identifier string) (bulleti
 
 // Query
 func (b *Bulletin) Query(ctx context.Context, namespace, query string) (<-chan bulletin.QueryResponse, error) {
-	respCh := make(chan bulletin.QueryResponse, 0)
+	respCh := make(chan bulletin.QueryResponse)
 
 	query = namespace + query
 
