@@ -15,16 +15,13 @@ import (
 	gossipbulletinv1alpha1 "github.com/sourcenetwork/orbis-go/gen/proto/orbis/gossipbulletin/v1alpha1"
 	transportv1alpha1 "github.com/sourcenetwork/orbis-go/gen/proto/orbis/transport/v1alpha1"
 	"github.com/sourcenetwork/orbis-go/pkg/bulletin"
+	"github.com/sourcenetwork/orbis-go/pkg/cosmos"
 	"github.com/sourcenetwork/orbis-go/pkg/host"
 	"github.com/sourcenetwork/orbis-go/pkg/transport"
 
 	"github.com/sourcenetwork/sourcehub/x/bulletin/types"
 
 	rpctypes "github.com/cometbft/cometbft/rpc/core/types"
-	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
-
-	"github.com/ignite/cli/v28/ignite/pkg/cosmosaccount"
-	"github.com/ignite/cli/v28/ignite/pkg/cosmosclient"
 )
 
 var log = logging.Logger("orbis/bulletin/sourcehub")
@@ -36,21 +33,17 @@ var _ bulletin.Bulletin = (*Bulletin)(nil)
 type Message = gossipbulletinv1alpha1.Message
 
 type Bulletin struct {
-	ctx context.Context
 	cfg config.Bulletin
 
-	client    cosmosclient.Client
-	account   cosmosaccount.Account
-	address   string
-	rpcClient *rpcclient.WSClient
-	bus       eventbus.Bus
+	client *cosmos.Client
+	bus    eventbus.Bus
 }
 
-func New(ctx context.Context, host *host.Host, cfg config.Bulletin) (*Bulletin, error) {
+func New(ctx context.Context, host *host.Host, client *cosmos.Client, cfg config.Bulletin) (*Bulletin, error) {
 
 	bb := &Bulletin{
-		ctx: ctx,
-		cfg: cfg,
+		cfg:    cfg,
+		client: client,
 	}
 
 	return bb, nil
@@ -61,50 +54,12 @@ func (bb *Bulletin) Name() string {
 }
 
 func (bb *Bulletin) Init(ctx context.Context) error {
-
-	opts := []cosmosclient.Option{
-		cosmosclient.WithNodeAddress(bb.cfg.SourceHub.NodeAddress),
-		cosmosclient.WithAddressPrefix(bb.cfg.SourceHub.AddressPrefix),
-		cosmosclient.WithFees(bb.cfg.SourceHub.Fees),
-	}
-	client, err := cosmosclient.New(ctx, opts...)
-	if err != nil {
-		return fmt.Errorf("new cosmos client: %w", err)
-	}
-
-	account, err := client.Account(bb.cfg.SourceHub.AccountName)
-	if err != nil {
-		return fmt.Errorf("get account by name: %w", err)
-	}
-
-	address, err := account.Address(bb.cfg.SourceHub.AddressPrefix)
-	if err != nil {
-		return fmt.Errorf("get account address: %w", err)
-	}
-
-	rpcClient, err := rpcclient.NewWS(bb.cfg.SourceHub.RPCAddress, "/websocket")
-	if err != nil {
-		return fmt.Errorf("new rpc client: %w", err)
-	}
-
-	err = rpcClient.Start()
-	if err != nil {
-		return fmt.Errorf("rpc client start: %w", err)
-	}
-
-	err = rpcClient.Subscribe(ctx, "tm.event='Tx' AND NewPost.payload EXISTS")
+	err := bb.client.RpcClient.Subscribe(ctx, "tm.event='Tx' AND NewPost.payload EXISTS")
 	if err != nil {
 		return fmt.Errorf("subscribe to namespace: %w", err)
 	}
 
-	bus := eventbus.NewBus()
-
-	bb.ctx = ctx
-	bb.client = client
-	bb.account = account
-	bb.address = address
-	bb.rpcClient = rpcClient
-	bb.bus = bus
+	bb.bus = eventbus.NewBus()
 
 	go bb.HandleEvents()
 
@@ -129,7 +84,7 @@ func (bb *Bulletin) Post(ctx context.Context, namespace, id string, msg *transpo
 
 	id = namespace + id
 	hubMsg := &types.MsgCreatePost{
-		Creator:   bb.address,
+		Creator:   bb.client.Address,
 		Namespace: id,
 		Payload:   payload,
 		Proof:     nil,
@@ -138,7 +93,7 @@ func (bb *Bulletin) Post(ctx context.Context, namespace, id string, msg *transpo
 	resp.Data = msg
 	resp.ID = id
 
-	_, err = bb.client.BroadcastTx(ctx, bb.account, hubMsg)
+	_, err = bb.client.BroadcastTx(ctx, bb.client.Account, hubMsg)
 	if err != nil {
 		return resp, fmt.Errorf("broadcast tx: %w", err)
 	}
@@ -192,7 +147,7 @@ func (bb *Bulletin) Events() eventbus.Bus {
 
 func (bb *Bulletin) HandleEvents() {
 
-	for resp := range bb.rpcClient.ResponsesCh {
+	for resp := range bb.client.RpcClient.ResponsesCh {
 		result := &rpctypes.ResultEvent{}
 		err := json.Unmarshal((resp.Result), result)
 		if err != nil {
