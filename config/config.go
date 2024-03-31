@@ -13,6 +13,7 @@ import (
 type Config struct {
 	GRPC      GRPC
 	Host      Host
+	Cosmos    Cosmos
 	DKG       DKG
 	Logger    Logger
 	Ring      Ring
@@ -47,6 +48,14 @@ type DKG struct {
 	Bulletin  string `default:"p2pbb" description:"DKG Bulletin"`
 }
 
+type Cosmos struct {
+	AccountName   string `default:"" description:"Account name"`
+	AddressPrefix string `default:"" description:"Address prefix"`
+	KeyRing       string `default:"test" description:"Keyring backend"`
+	Fees          string `default:"" description:"Fees"`
+	RPCAddress    string `default:"" description:"RPC address"`
+}
+
 type Ring struct {
 }
 
@@ -61,13 +70,6 @@ type Bulletin struct {
 	P2P struct {
 		PersistentPeers string `default:"" description:"comma seperated list of persistent peer multiaddrs"`
 		Rendezvous      string `default:"orbis-bulletin" description:"Rendezvous string"`
-	}
-	SourceHub struct {
-		AccountName   string `default:"alice" description:"Account name"`
-		AddressPrefix string `default:"cosmos" description:"Address prefix"`
-		Fees          string `default:"30stake" description:"Fees"`
-		NodeAddress   string `default:"http://host.docker.internal:26657" description:"Node address"`
-		RPCAddress    string `default:"tcp://host.docker.internal:26657" description:"RPC address"`
 	}
 }
 
@@ -87,7 +89,7 @@ type DB struct {
 }
 
 type configTypes interface {
-	Host | DB | Bulletin | Transport | Secret | Ring | DKG | GRPC | Logger
+	Host | Cosmos | DB | Bulletin | Transport | Secret | Ring | DKG | GRPC | Logger
 }
 
 func Default[T configTypes]() (T, error) {
