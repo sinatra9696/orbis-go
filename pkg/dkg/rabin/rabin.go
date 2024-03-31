@@ -266,6 +266,7 @@ func (d *dkg) initCommon(ctx context.Context) error {
 	// time.Sleep(3 * time.Second)
 	log.Infof("registered to namespace %s", d.bbnamespace)
 
+	log.Debug("DKG STATE AFTER INIT:", d.State())
 	return d.queryBulletinBacklog(ctx)
 }
 
@@ -297,13 +298,14 @@ func (d *dkg) queryBulletinBacklog(ctx context.Context) error {
 		if resp.Err != nil {
 			return fmt.Errorf("bulletin query response: %w", err)
 		}
+		log.Infof("processing bulletin backlog: %s", resp.Resp.ID)
 
 		evt := bulletin.Event{
 			Message: resp.Resp.Data,
 			ID:      resp.Resp.ID,
 		}
 
-		log.Debugf("bulletin query event from %s for %s", evt.Message.NodeId, evt.Message.TargetId)
+		log.Infof("bulletin query event from %s for %s", evt.Message.NodeId, evt.Message.TargetId)
 		d.eventsCh <- evt
 	}
 	log.Info("Finished bulletin query backlog")
@@ -348,36 +350,41 @@ func (d *dkg) Start(ctx context.Context) error {
 		return fmt.Errorf("generate deals: %w", err)
 	}
 
-	d.state = orbisdkg.STARTED
-	if err := d.save(ctx); err != nil {
-		return err
-	}
-
-	for i, deal := range deals {
-		log.Debugf("node %s sending deal to partitipants %s", d.NodeID(), d.participants[i].ID())
-		if i == d.index {
-			// TODO: deliver to ourselves
-			continue
-		}
-
-		pDeal, err := dealToProto(deal)
-		if err != nil {
-			return fmt.Errorf("deal to proto: %w", err)
-		}
-		buf, err := proto.Marshal(pDeal)
-		if err != nil {
-			return fmt.Errorf("marshal deal: %w", err)
-		}
-
-		msgID := fmt.Sprintf("/%s/%s/%s", DealNamespace, d.NodeID(), d.participants[i].ID())
-		err = d.post(ctx, DealNamespace, d.bbnamespace, msgID, buf, d.participants[i])
-		if err != nil {
-			return fmt.Errorf("send deal: %w", err)
+	log.Debug("START STATE:", d.State())
+	if d.state == orbisdkg.INITIALIZED {
+		d.state = orbisdkg.STARTED
+		if err := d.save(ctx); err != nil {
+			return err
 		}
 	}
-	d.state = RECIEVING
-	if err := d.save(ctx); err != nil {
-		return err
+
+	if d.state == orbisdkg.STARTED {
+		for i, deal := range deals {
+			log.Debugf("node %s sending deal to partitipants %s", d.NodeID(), d.participants[i].ID())
+			if i == d.index {
+				// TODO: deliver to ourselves
+				continue
+			}
+
+			pDeal, err := dealToProto(deal)
+			if err != nil {
+				return fmt.Errorf("deal to proto: %w", err)
+			}
+			buf, err := proto.Marshal(pDeal)
+			if err != nil {
+				return fmt.Errorf("marshal deal: %w", err)
+			}
+
+			msgID := fmt.Sprintf("/%s/%s/%s", DealNamespace, d.NodeID(), d.participants[i].ID())
+			err = d.post(ctx, DealNamespace, d.bbnamespace, msgID, buf, d.participants[i])
+			if err != nil {
+				return fmt.Errorf("send deal: %w", err)
+			}
+		}
+		d.state = RECIEVING
+		if err := d.save(ctx); err != nil {
+			return err
+		}
 	}
 
 	go d.dispatch()

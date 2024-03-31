@@ -392,6 +392,7 @@ func (app *App) LoadRings(ctx context.Context) error {
 		ring.manifest = r.Manifest
 
 		app.rings[ring.ID] = ring
+		go ring.Start(ctx)
 	}
 	log.Infof("Finished loading %d rings from state", len(rings))
 

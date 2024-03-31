@@ -134,7 +134,8 @@ func (bb *Bulletin) Query(ctx context.Context, namespace, query string) (<-chan 
 	}
 
 	path := "store/bulletin/subspace"
-	prefix := fmt.Sprintf("%s/%s", "Post/Value/", namespace)
+	prefix := fmt.Sprintf("%s/%s", "Post/Value", namespace)
+	log.Info("ABCI IAVL store subspace query")
 	resp, err := bb.client.RPC.ABCIQuery(ctx, path, bytes.HexBytes(prefix))
 	if err != nil {
 		return nil, fmt.Errorf("ABCI Query: %w", err)
@@ -146,7 +147,8 @@ func (bb *Bulletin) Query(ctx context.Context, namespace, query string) (<-chan 
 		return nil, fmt.Errorf("kv pairs unmarshal: %w", err)
 	}
 
-	query = namespace + query
+	log.Infof("Subspace result pairs: %d", len(KVPairs.Pairs))
+	query = "Post/Value/" + namespace + query
 	respCh := make(chan bulletin.QueryResponse)
 
 	go func() {
@@ -155,6 +157,7 @@ func (bb *Bulletin) Query(ctx context.Context, namespace, query string) (<-chan 
 		}()
 
 		for _, pair := range KVPairs.Pairs {
+			log.Infof("bulletin query glob query=%s value=%s", query, string(pair.Key))
 			if glob.Glob(query, string(pair.Key)) {
 				// decode value payload
 				var post types.Post
@@ -183,11 +186,9 @@ func (bb *Bulletin) Query(ctx context.Context, namespace, query string) (<-chan 
 				}
 			}
 		}
-		close(respCh)
 	}()
 
 	return respCh, nil
-
 }
 
 func (bb *Bulletin) Verify(context.Context, bulletin.Proof, string, bulletin.Message) bool {

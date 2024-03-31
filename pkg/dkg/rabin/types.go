@@ -23,7 +23,9 @@ import (
 )
 
 const (
-	RECIEVING orbisdkg.State = orbisdkg.CUSTOM_STATE_MASK | iota + 1 // 0b10000000
+	RABIN_CUSTOM_STATE_MASK orbisdkg.State = 0b01000000
+
+	RECIEVING orbisdkg.State = orbisdkg.CUSTOM_STATE_MASK | RABIN_CUSTOM_STATE_MASK | iota + 1 // 0b10000000
 	// Processed all the deals, waiting for responses
 	PROCESSED_DEALS     // 0b10000001
 	PROCESSED_RESPONSES // 0b10000010
@@ -46,6 +48,10 @@ var (
 		PROCESSED_COMMITS:    "Processed Commits",
 	}
 )
+
+func IsRabinState(state orbisdkg.State) bool {
+	return (state & RABIN_CUSTOM_STATE_MASK) > 0
+}
 
 type Deal = rabinv1alpha1.Deal
 
