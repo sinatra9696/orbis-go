@@ -4,7 +4,7 @@ package orbis.bulletin.sourcehub.v1alpha1;
 
 // Pairs defines a repeated slice of Pair objects.
 message Pairs {
-    repeated Pair pairs = 1 [(gogoproto.nullable) = false];
+    repeated Pair pairs = 1;
 }
   
 // Pair defines a key/value bytes tuple.
