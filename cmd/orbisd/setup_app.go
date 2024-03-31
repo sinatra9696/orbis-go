@@ -15,6 +15,7 @@ import (
 	"github.com/sourcenetwork/orbis-go/pkg/bulletin"
 	p2pbb "github.com/sourcenetwork/orbis-go/pkg/bulletin/p2p"
 	"github.com/sourcenetwork/orbis-go/pkg/bulletin/sourcehub"
+	"github.com/sourcenetwork/orbis-go/pkg/cosmos"
 	"github.com/sourcenetwork/orbis-go/pkg/did"
 	"github.com/sourcenetwork/orbis-go/pkg/dkg"
 	"github.com/sourcenetwork/orbis-go/pkg/dkg/rabin"
@@ -34,6 +35,11 @@ func setupApp(ctx context.Context, cfg config.Config) (*app.App, error) {
 		return nil, fmt.Errorf("create host: %w", err)
 	}
 
+	cosmosclient, err := cosmos.New(ctx, cfg.Cosmos)
+	if err != nil {
+		return nil, fmt.Errorf("create cosmos client: %w", err)
+	}
+
 	tp, err := p2ptp.New(ctx, host, cfg.Transport)
 	if err != nil {
 		return nil, fmt.Errorf("create transport: %w", err)
@@ -44,7 +50,7 @@ func setupApp(ctx context.Context, cfg config.Config) (*app.App, error) {
 		return nil, fmt.Errorf("create p2p bulletin: %w", err)
 	}
 
-	hubbb, err := sourcehub.New(ctx, host, cfg.Bulletin)
+	hubbb, err := sourcehub.New(ctx, host, cosmosclient, cfg.Bulletin)
 	if err != nil {
 		return nil, fmt.Errorf("create sourcehub bulletin: %w", err)
 	}
@@ -66,6 +72,8 @@ func setupApp(ctx context.Context, cfg config.Config) (*app.App, error) {
 
 		app.WithService[bulletin.Bulletin](bb),
 		app.WithService[bulletin.Bulletin](hubbb),
+
+		app.WithService[*cosmos.Client](cosmosclient),
 
 		// Authentication and Authorization services
 		app.WithService(authz.NewAllow(authz.ALLOW_ALL)),
