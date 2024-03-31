@@ -12,7 +12,7 @@ import (
 	eventbus "github.com/sourcenetwork/eventbus-go"
 
 	"github.com/sourcenetwork/orbis-go/config"
-	gossipbulletinv1alpha1 "github.com/sourcenetwork/orbis-go/gen/proto/orbis/gossipbulletin/v1alpha1"
+	sourcehubbulletinv1alpha1 "github.com/sourcenetwork/orbis-go/gen/proto/orbis/bulletin/sourcehub/v1alpha1"
 	transportv1alpha1 "github.com/sourcenetwork/orbis-go/gen/proto/orbis/transport/v1alpha1"
 	"github.com/sourcenetwork/orbis-go/pkg/bulletin"
 	"github.com/sourcenetwork/orbis-go/pkg/cosmos"
@@ -21,6 +21,7 @@ import (
 
 	"github.com/sourcenetwork/sourcehub/x/bulletin/types"
 
+	"github.com/cometbft/cometbft/libs/bytes"
 	rpctypes "github.com/cometbft/cometbft/rpc/core/types"
 )
 
@@ -29,8 +30,6 @@ var log = logging.Logger("orbis/bulletin/sourcehub")
 const name = "sourcehub"
 
 var _ bulletin.Bulletin = (*Bulletin)(nil)
-
-type Message = gossipbulletinv1alpha1.Message
 
 type Bulletin struct {
 	cfg config.Bulletin
@@ -131,6 +130,19 @@ func (bb *Bulletin) Read(ctx context.Context, namespace, id string) (bulletin.Re
 func (bb *Bulletin) Query(ctx context.Context, namespace, query string) (<-chan bulletin.QueryResponse, error) {
 	if query == "" {
 		return nil, fmt.Errorf("query can't be empty")
+	}
+
+	path := "store/bulletin/subspace"
+	prefix := fmt.Sprintf("%s/%s", "Post/Value/", namespace)
+	resp, err := bb.client.RPC.ABCIQuery(ctx, path, bytes.HexBytes(prefix))
+	if err != nil {
+		return nil, fmt.Errorf("ABCI Query: %w", err)
+	}
+
+	var KVPairs sourcehubbulletinv1alpha1.Pairs
+	err = proto.Unmarshal(resp.Response.Value, &KVPairs)
+	if err != nil {
+		return nil, fmt.Errorf("kv pairs unmarshal: %w", err)
 	}
 
 	return nil, nil
