@@ -407,6 +407,7 @@ func dkgFromProto(d *rabinv1alpha1.DKG) (dkg, error) {
 	// share
 	// TODO: Commitments
 	var distKeyShare crypto.DistKeyShare
+	distKeyShare.PriShare = new(share.PriShare)
 	if d.PriShare != nil {
 		distKeyShare.PriShare.I = int(d.PriShare.Index)
 		distKeyShare.PriShare.V = suite.Scalar()
