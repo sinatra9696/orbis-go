@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/golang/protobuf/proto"
 	logging "github.com/ipfs/go-log"
-	"google.golang.org/protobuf/proto"
 
 	eventbus "github.com/sourcenetwork/eventbus-go"
 
@@ -18,6 +18,7 @@ import (
 	"github.com/sourcenetwork/orbis-go/pkg/cosmos"
 	"github.com/sourcenetwork/orbis-go/pkg/host"
 	"github.com/sourcenetwork/orbis-go/pkg/transport"
+	"github.com/sourcenetwork/orbis-go/pkg/util/glob"
 
 	"github.com/sourcenetwork/sourcehub/x/bulletin/types"
 
@@ -145,7 +146,47 @@ func (bb *Bulletin) Query(ctx context.Context, namespace, query string) (<-chan 
 		return nil, fmt.Errorf("kv pairs unmarshal: %w", err)
 	}
 
-	return nil, nil
+	query = namespace + query
+	respCh := make(chan bulletin.QueryResponse)
+
+	go func() {
+		defer func() {
+			close(respCh)
+		}()
+
+		for _, pair := range KVPairs.Pairs {
+			if glob.Glob(query, string(pair.Key)) {
+				// decode value payload
+				var post types.Post
+				err = proto.Unmarshal(pair.Value, &post)
+				if err != nil {
+					respCh <- bulletin.QueryResponse{
+						Err: fmt.Errorf("bulletin Post unmarshal: %w", err),
+					}
+					return // exit early on err
+				}
+
+				var pbPayload transportv1alpha1.Message
+				err = proto.Unmarshal(post.Payload, &pbPayload)
+				if err != nil {
+					respCh <- bulletin.QueryResponse{
+						Err: fmt.Errorf("transport Message unmarshal: %w", err),
+					}
+					return // exit early on err
+				}
+
+				respCh <- bulletin.QueryResponse{
+					Resp: bulletin.Response{
+						Data: &pbPayload,
+						ID:   post.Namespace,
+					},
+				}
+			}
+		}
+		close(respCh)
+	}()
+
+	return respCh, nil
 
 }
 
