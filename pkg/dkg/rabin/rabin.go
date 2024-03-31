@@ -267,7 +267,12 @@ func (d *dkg) initCommon(ctx context.Context) error {
 	log.Infof("registered to namespace %s", d.bbnamespace)
 
 	log.Debug("DKG STATE AFTER INIT:", d.State())
-	return d.queryBulletinBacklog(ctx)
+
+	// query the backlog if we haven't yet finished the DKG
+	if d.state != orbisdkg.CERTIFIED {
+		return d.queryBulletinBacklog(ctx)
+	}
+	return nil
 }
 
 // queryBulletinBacklog will run a query on the backlog on the
@@ -332,6 +337,11 @@ func (d *dkg) State() string {
 func (d *dkg) Start(ctx context.Context) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
+
+	// nothing todo
+	if d.state == orbisdkg.CERTIFIED {
+		return nil
+	}
 
 	log.Debug("Starting rabin DKG")
 
