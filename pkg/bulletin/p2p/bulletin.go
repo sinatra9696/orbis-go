@@ -24,7 +24,7 @@ import (
 	rpc "github.com/sourcenetwork/go-libp2p-pubsub-rpc"
 
 	"github.com/sourcenetwork/orbis-go/config"
-	gossipbulletinv1alpha1 "github.com/sourcenetwork/orbis-go/gen/proto/orbis/gossipbulletin/v1alpha1"
+	gossipbulletinv1alpha1 "github.com/sourcenetwork/orbis-go/gen/proto/orbis/bulletin/gossip/v1alpha1"
 	"github.com/sourcenetwork/orbis-go/pkg/bulletin"
 	"github.com/sourcenetwork/orbis-go/pkg/bulletin/memmap"
 	"github.com/sourcenetwork/orbis-go/pkg/host"
