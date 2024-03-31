@@ -20,12 +20,6 @@ bulletin:
   p2p:
     rendezvous: "orbis-bulletin"
     persistentPeers: "/dns4/orbisd1/tcp/9001/p2p/12D3KooWHHzSeKaY8xuZVzkLbKFfvNgPPeKhFBGrMbNzbm5akpqu"
-  sourcehub:
-    accountName: "validator2"
-    addressPrefix: "source"
-    fees: "30stake"
-    nodeAddress: "http://host.docker.internal:26657"
-    rpcAddress: "tcp://host.docker.internal:26657"
 
 transport:
   rendezvous: "orbis-transport"
@@ -35,3 +29,11 @@ authz:
 
 db:
   path: "data2"
+
+cosmos:
+  chainId: sourcehub-testnet1
+  accountName: validator2
+  keyringBackend: test
+  addressPrefix: source
+  fees: 30stake
+  rpcAddress: http://host.docker.internal:26657

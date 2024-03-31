@@ -26,4 +26,4 @@ sourcehubd genesis gentx ${VALIDATOR3} 70000000stake --chain-id sourcehub --keyr
 sourcehubd genesis collect-gentxs
 
 sed -i -e 's/timeout_commit = "5s"/timeout_commit = "1s"/g' /root/.sourcehub/config/config.toml
-cat /root/.sourcehub/config/config.toml
+# cat /root/.sourcehub/config/config.toml
