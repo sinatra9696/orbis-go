@@ -43,6 +43,7 @@ type dkg struct {
 	rdkg         *rabindkg.DistKeyGenerator
 	participants []orbisdkg.Node
 	privKey      kyber.Scalar
+	pubKey       kyber.Point
 	index        int
 
 	rkeys []db.RepoKey
@@ -52,7 +53,7 @@ type dkg struct {
 	threshold int32
 	suite     suites.Suite
 
-	pubKey       kyber.Point         // DKG group Public key
+	distPubKey   kyber.Point         // DKG group Public key
 	distKeyShare crypto.DistKeyShare // DKG node private share
 
 	secret kyber.Scalar   // vss dealer polynomial secret
@@ -322,7 +323,10 @@ func (d *dkg) Name() string {
 }
 
 func (d *dkg) PublicKey() (crypto.PublicKey, error) {
-	return crypto.PublicKeyFromPoint(d.suite, d.pubKey)
+	if d.distPubKey == nil {
+		return nil, fmt.Errorf("no DKG public key")
+	}
+	return crypto.PublicKeyFromPoint(d.suite, d.distPubKey)
 }
 
 func (d *dkg) Share() crypto.DistKeyShare {
@@ -711,7 +715,7 @@ func (d *dkg) loadUnsafe(ctx context.Context) error {
 	d.threshold = _d.threshold
 	d.suite = _d.suite
 	d.state = _d.state
-	d.pubKey = _d.pubKey
+	d.distPubKey = _d.distPubKey
 	d.participants = _d.participants
 	d.fPoly = _d.fPoly
 	d.gPoly = _d.gPoly
