@@ -6,11 +6,12 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/sourcenetwork/orbis-go/config"
 	"github.com/sourcenetwork/orbis-go/pkg/authz"
 	"github.com/sourcenetwork/orbis-go/pkg/cosmos"
 	"github.com/sourcenetwork/sourcehub/x/acp/types"
 )
+
+const name = "ACP"
 
 var permRegex = `^(?P<PolicyID>\w+)\/(?P<ResourceGroup>\w+):(?P<ResourceID>\w+)#(?P<Relation>\w+)$`
 
@@ -18,12 +19,14 @@ type acp struct {
 	client *cosmos.Client
 }
 
-func New(ctx context.Context, client *cosmos.Client, cfg config.Bulletin) (authz.Authz, error) {
-	return newACPClient(ctx, client, cfg)
+func New(ctx context.Context, client *cosmos.Client) (authz.Authz, error) {
+	return newACPClient(ctx, client)
 }
 
-func newACPClient(ctx context.Context, client *cosmos.Client, cfg config.Bulletin) (*acp, error) {
-	return nil, nil
+func newACPClient(ctx context.Context, client *cosmos.Client) (*acp, error) {
+	return &acp{
+		client: client,
+	}, nil
 }
 
 func (a *acp) Init(ctx context.Context) error {
@@ -31,7 +34,7 @@ func (a *acp) Init(ctx context.Context) error {
 }
 
 func (a *acp) Name() string {
-	return "ACP"
+	return name
 }
 
 func (a *acp) Check(ctx context.Context, permission, subject string) (bool, error) {
@@ -40,10 +43,12 @@ func (a *acp) Check(ctx context.Context, permission, subject string) (bool, erro
 		return false, fmt.Errorf("parse permission: %w", err)
 	}
 
+	// split user:<actor>
 	subjects := strings.SplitN(subject, ":", 2)
 	if len(subjects) != 2 {
 		return false, fmt.Errorf("subject validation: %s (%v size=%d)", subject, subjects, len(subjects))
 	}
+	actor := subjects[1]
 
 	verifyReq := &types.QueryVerifyAccessRequestRequest{
 		PolicyId: checkReq.policyID,
@@ -55,7 +60,7 @@ func (a *acp) Check(ctx context.Context, permission, subject string) (bool, erro
 				},
 			},
 			Actor: &types.Actor{
-				Id: subjects[1],
+				Id: actor,
 			},
 		},
 	}
