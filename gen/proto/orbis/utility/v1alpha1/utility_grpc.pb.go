@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	UtilityService_CreateDID_FullMethodName     = "/orbis.utility.v1alpha1.UtilityService/CreateDID"
-	UtilityService_CreateJWT_FullMethodName     = "/orbis.utility.v1alpha1.UtilityService/CreateJWT"
-	UtilityService_CreateKeypair_FullMethodName = "/orbis.utility.v1alpha1.UtilityService/CreateKeypair"
-	UtilityService_EncryptSecret_FullMethodName = "/orbis.utility.v1alpha1.UtilityService/EncryptSecret"
-	UtilityService_DecryptSecret_FullMethodName = "/orbis.utility.v1alpha1.UtilityService/DecryptSecret"
+	UtilityService_CreateDID_FullMethodName            = "/orbis.utility.v1alpha1.UtilityService/CreateDID"
+	UtilityService_CreateJWT_FullMethodName            = "/orbis.utility.v1alpha1.UtilityService/CreateJWT"
+	UtilityService_CreateKeypair_FullMethodName        = "/orbis.utility.v1alpha1.UtilityService/CreateKeypair"
+	UtilityService_EncryptSecret_FullMethodName        = "/orbis.utility.v1alpha1.UtilityService/EncryptSecret"
+	UtilityService_DecryptSecret_FullMethodName        = "/orbis.utility.v1alpha1.UtilityService/DecryptSecret"
+	UtilityService_SetAuthzRelationship_FullMethodName = "/orbis.utility.v1alpha1.UtilityService/SetAuthzRelationship"
 )
 
 // UtilityServiceClient is the client API for UtilityService service.
@@ -35,6 +36,7 @@ type UtilityServiceClient interface {
 	CreateKeypair(ctx context.Context, in *CreateKeypairRequest, opts ...grpc.CallOption) (*CreateKeypairResponse, error)
 	EncryptSecret(ctx context.Context, in *EncryptSecretRequest, opts ...grpc.CallOption) (*EncryptSecretResponse, error)
 	DecryptSecret(ctx context.Context, in *DecryptSecretRequest, opts ...grpc.CallOption) (*DecryptSecretResponse, error)
+	SetAuthzRelationship(ctx context.Context, in *SetAuthzRelationshipRequest, opts ...grpc.CallOption) (*SetAuthzRelationshipResponse, error)
 }
 
 type utilityServiceClient struct {
@@ -90,6 +92,15 @@ func (c *utilityServiceClient) DecryptSecret(ctx context.Context, in *DecryptSec
 	return out, nil
 }
 
+func (c *utilityServiceClient) SetAuthzRelationship(ctx context.Context, in *SetAuthzRelationshipRequest, opts ...grpc.CallOption) (*SetAuthzRelationshipResponse, error) {
+	out := new(SetAuthzRelationshipResponse)
+	err := c.cc.Invoke(ctx, UtilityService_SetAuthzRelationship_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UtilityServiceServer is the server API for UtilityService service.
 // All implementations must embed UnimplementedUtilityServiceServer
 // for forward compatibility
@@ -99,6 +110,7 @@ type UtilityServiceServer interface {
 	CreateKeypair(context.Context, *CreateKeypairRequest) (*CreateKeypairResponse, error)
 	EncryptSecret(context.Context, *EncryptSecretRequest) (*EncryptSecretResponse, error)
 	DecryptSecret(context.Context, *DecryptSecretRequest) (*DecryptSecretResponse, error)
+	SetAuthzRelationship(context.Context, *SetAuthzRelationshipRequest) (*SetAuthzRelationshipResponse, error)
 	mustEmbedUnimplementedUtilityServiceServer()
 }
 
@@ -120,6 +132,9 @@ func (UnimplementedUtilityServiceServer) EncryptSecret(context.Context, *Encrypt
 }
 func (UnimplementedUtilityServiceServer) DecryptSecret(context.Context, *DecryptSecretRequest) (*DecryptSecretResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DecryptSecret not implemented")
+}
+func (UnimplementedUtilityServiceServer) SetAuthzRelationship(context.Context, *SetAuthzRelationshipRequest) (*SetAuthzRelationshipResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetAuthzRelationship not implemented")
 }
 func (UnimplementedUtilityServiceServer) mustEmbedUnimplementedUtilityServiceServer() {}
 
@@ -224,6 +239,24 @@ func _UtilityService_DecryptSecret_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UtilityService_SetAuthzRelationship_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetAuthzRelationshipRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UtilityServiceServer).SetAuthzRelationship(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UtilityService_SetAuthzRelationship_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UtilityServiceServer).SetAuthzRelationship(ctx, req.(*SetAuthzRelationshipRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UtilityService_ServiceDesc is the grpc.ServiceDesc for UtilityService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -250,6 +283,10 @@ var UtilityService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DecryptSecret",
 			Handler:    _UtilityService_DecryptSecret_Handler,
+		},
+		{
+			MethodName: "SetAuthzRelationship",
+			Handler:    _UtilityService_SetAuthzRelationship_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
