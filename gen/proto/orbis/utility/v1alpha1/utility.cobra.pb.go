@@ -21,11 +21,13 @@ func UtilityServiceClientCommand(options ...client.Option) *cobra.Command {
 	cfg.BindFlags(cmd.PersistentFlags())
 	cmd.AddCommand(
 		_UtilityServiceCreateDIDCommand(cfg),
+		_UtilityServiceCreateBech32AddressCommand(cfg),
 		_UtilityServiceCreateJWTCommand(cfg),
 		_UtilityServiceCreateKeypairCommand(cfg),
 		_UtilityServiceEncryptSecretCommand(cfg),
 		_UtilityServiceDecryptSecretCommand(cfg),
-		_UtilityServiceSetAuthzRelationshipCommand(cfg),
+		_UtilityServiceAuthzRegisterObjectCommand(cfg),
+		_UtilityServiceAuthzSetRelationshipCommand(cfg),
 	)
 	return cmd
 }
@@ -69,6 +71,50 @@ func _UtilityServiceCreateDIDCommand(cfg *client.Config) *cobra.Command {
 
 	cmd.PersistentFlags().StringVar(&req.KeyType, cfg.FlagNamer("KeyType"), "", "")
 	flag.BytesBase64Var(cmd.PersistentFlags(), &req.PublicKey, cfg.FlagNamer("PublicKey"), "")
+
+	return cmd
+}
+
+func _UtilityServiceCreateBech32AddressCommand(cfg *client.Config) *cobra.Command {
+	req := &CreateBech32AddressRequest{}
+
+	cmd := &cobra.Command{
+		Use:   cfg.CommandNamer("CreateBech32Address"),
+		Short: "CreateBech32Address RPC client",
+		Long:  "",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if cfg.UseEnvVars {
+				if err := flag.SetFlagsFromEnv(cmd.Parent().PersistentFlags(), true, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService"); err != nil {
+					return err
+				}
+				if err := flag.SetFlagsFromEnv(cmd.PersistentFlags(), false, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService", "CreateBech32Address"); err != nil {
+					return err
+				}
+			}
+			return client.RoundTrip(cmd.Context(), cfg, func(cc grpc.ClientConnInterface, in iocodec.Decoder, out iocodec.Encoder) error {
+				cli := NewUtilityServiceClient(cc)
+				v := &CreateBech32AddressRequest{}
+
+				if err := in(v); err != nil {
+					return err
+				}
+				proto.Merge(v, req)
+
+				res, err := cli.CreateBech32Address(cmd.Context(), v)
+
+				if err != nil {
+					return err
+				}
+
+				return out(res)
+
+			})
+		},
+	}
+
+	cmd.PersistentFlags().StringVar(&req.KeyType, cfg.FlagNamer("KeyType"), "", "")
+	flag.BytesBase64Var(cmd.PersistentFlags(), &req.PublicKey, cfg.FlagNamer("PublicKey"), "")
+	cmd.PersistentFlags().StringVar(&req.Prefix, cfg.FlagNamer("Prefix"), "", "")
 
 	return cmd
 }
@@ -251,32 +297,32 @@ func _UtilityServiceDecryptSecretCommand(cfg *client.Config) *cobra.Command {
 	return cmd
 }
 
-func _UtilityServiceSetAuthzRelationshipCommand(cfg *client.Config) *cobra.Command {
-	req := &SetAuthzRelationshipRequest{}
+func _UtilityServiceAuthzRegisterObjectCommand(cfg *client.Config) *cobra.Command {
+	req := &AuthzRegisterObjectRequest{}
 
 	cmd := &cobra.Command{
-		Use:   cfg.CommandNamer("SetAuthzRelationship"),
-		Short: "SetAuthzRelationship RPC client",
+		Use:   cfg.CommandNamer("AuthzRegisterObject"),
+		Short: "AuthzRegisterObject RPC client",
 		Long:  "",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if cfg.UseEnvVars {
 				if err := flag.SetFlagsFromEnv(cmd.Parent().PersistentFlags(), true, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService"); err != nil {
 					return err
 				}
-				if err := flag.SetFlagsFromEnv(cmd.PersistentFlags(), false, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService", "SetAuthzRelationship"); err != nil {
+				if err := flag.SetFlagsFromEnv(cmd.PersistentFlags(), false, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService", "AuthzRegisterObject"); err != nil {
 					return err
 				}
 			}
 			return client.RoundTrip(cmd.Context(), cfg, func(cc grpc.ClientConnInterface, in iocodec.Decoder, out iocodec.Encoder) error {
 				cli := NewUtilityServiceClient(cc)
-				v := &SetAuthzRelationshipRequest{}
+				v := &AuthzRegisterObjectRequest{}
 
 				if err := in(v); err != nil {
 					return err
 				}
 				proto.Merge(v, req)
 
-				res, err := cli.SetAuthzRelationship(cmd.Context(), v)
+				res, err := cli.AuthzRegisterObject(cmd.Context(), v)
 
 				if err != nil {
 					return err
@@ -288,10 +334,57 @@ func _UtilityServiceSetAuthzRelationshipCommand(cfg *client.Config) *cobra.Comma
 		},
 	}
 
-	cmd.PersistentFlags().StringVar(&req.Subject, cfg.FlagNamer("Subject"), "", "")
+	cmd.PersistentFlags().StringVar(&req.PolicyId, cfg.FlagNamer("PolicyId"), "", "")
+	cmd.PersistentFlags().StringVar(&req.Creator, cfg.FlagNamer("Creator"), "", "")
+	cmd.PersistentFlags().StringVar(&req.ObjectResource, cfg.FlagNamer("ObjectResource"), "", "")
+	cmd.PersistentFlags().StringVar(&req.ObjectId, cfg.FlagNamer("ObjectId"), "", "")
+
+	return cmd
+}
+
+func _UtilityServiceAuthzSetRelationshipCommand(cfg *client.Config) *cobra.Command {
+	req := &AuthzSetRelationshipRequest{}
+
+	cmd := &cobra.Command{
+		Use:   cfg.CommandNamer("AuthzSetRelationship"),
+		Short: "AuthzSetRelationship RPC client",
+		Long:  "",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if cfg.UseEnvVars {
+				if err := flag.SetFlagsFromEnv(cmd.Parent().PersistentFlags(), true, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService"); err != nil {
+					return err
+				}
+				if err := flag.SetFlagsFromEnv(cmd.PersistentFlags(), false, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService", "AuthzSetRelationship"); err != nil {
+					return err
+				}
+			}
+			return client.RoundTrip(cmd.Context(), cfg, func(cc grpc.ClientConnInterface, in iocodec.Decoder, out iocodec.Encoder) error {
+				cli := NewUtilityServiceClient(cc)
+				v := &AuthzSetRelationshipRequest{}
+
+				if err := in(v); err != nil {
+					return err
+				}
+				proto.Merge(v, req)
+
+				res, err := cli.AuthzSetRelationship(cmd.Context(), v)
+
+				if err != nil {
+					return err
+				}
+
+				return out(res)
+
+			})
+		},
+	}
+
+	cmd.PersistentFlags().StringVar(&req.Actor, cfg.FlagNamer("Actor"), "", "")
 	cmd.PersistentFlags().StringVar(&req.PolicyId, cfg.FlagNamer("PolicyId"), "", "")
 	cmd.PersistentFlags().StringVar(&req.ObjectResource, cfg.FlagNamer("ObjectResource"), "", "")
 	cmd.PersistentFlags().StringVar(&req.ObjectId, cfg.FlagNamer("ObjectId"), "", "")
+	cmd.PersistentFlags().StringVar(&req.Relation, cfg.FlagNamer("Relation"), "", "")
+	cmd.PersistentFlags().StringVar(&req.Creator, cfg.FlagNamer("Creator"), "", "")
 
 	return cmd
 }
