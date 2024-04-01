@@ -20,11 +20,13 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	UtilityService_CreateDID_FullMethodName            = "/orbis.utility.v1alpha1.UtilityService/CreateDID"
+	UtilityService_CreateBech32Address_FullMethodName  = "/orbis.utility.v1alpha1.UtilityService/CreateBech32Address"
 	UtilityService_CreateJWT_FullMethodName            = "/orbis.utility.v1alpha1.UtilityService/CreateJWT"
 	UtilityService_CreateKeypair_FullMethodName        = "/orbis.utility.v1alpha1.UtilityService/CreateKeypair"
 	UtilityService_EncryptSecret_FullMethodName        = "/orbis.utility.v1alpha1.UtilityService/EncryptSecret"
 	UtilityService_DecryptSecret_FullMethodName        = "/orbis.utility.v1alpha1.UtilityService/DecryptSecret"
-	UtilityService_SetAuthzRelationship_FullMethodName = "/orbis.utility.v1alpha1.UtilityService/SetAuthzRelationship"
+	UtilityService_AuthzRegisterObject_FullMethodName  = "/orbis.utility.v1alpha1.UtilityService/AuthzRegisterObject"
+	UtilityService_AuthzSetRelationship_FullMethodName = "/orbis.utility.v1alpha1.UtilityService/AuthzSetRelationship"
 )
 
 // UtilityServiceClient is the client API for UtilityService service.
@@ -32,11 +34,13 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UtilityServiceClient interface {
 	CreateDID(ctx context.Context, in *CreateDIDRequest, opts ...grpc.CallOption) (*CreateDIDResponse, error)
+	CreateBech32Address(ctx context.Context, in *CreateBech32AddressRequest, opts ...grpc.CallOption) (*CreateBech32AddressResponse, error)
 	CreateJWT(ctx context.Context, in *CreateJWTRequest, opts ...grpc.CallOption) (*CreateJWTResponse, error)
 	CreateKeypair(ctx context.Context, in *CreateKeypairRequest, opts ...grpc.CallOption) (*CreateKeypairResponse, error)
 	EncryptSecret(ctx context.Context, in *EncryptSecretRequest, opts ...grpc.CallOption) (*EncryptSecretResponse, error)
 	DecryptSecret(ctx context.Context, in *DecryptSecretRequest, opts ...grpc.CallOption) (*DecryptSecretResponse, error)
-	SetAuthzRelationship(ctx context.Context, in *SetAuthzRelationshipRequest, opts ...grpc.CallOption) (*SetAuthzRelationshipResponse, error)
+	AuthzRegisterObject(ctx context.Context, in *AuthzRegisterObjectRequest, opts ...grpc.CallOption) (*AuthzRegisterObjectResponse, error)
+	AuthzSetRelationship(ctx context.Context, in *AuthzSetRelationshipRequest, opts ...grpc.CallOption) (*AuthzSetRelationshipResponse, error)
 }
 
 type utilityServiceClient struct {
@@ -50,6 +54,15 @@ func NewUtilityServiceClient(cc grpc.ClientConnInterface) UtilityServiceClient {
 func (c *utilityServiceClient) CreateDID(ctx context.Context, in *CreateDIDRequest, opts ...grpc.CallOption) (*CreateDIDResponse, error) {
 	out := new(CreateDIDResponse)
 	err := c.cc.Invoke(ctx, UtilityService_CreateDID_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *utilityServiceClient) CreateBech32Address(ctx context.Context, in *CreateBech32AddressRequest, opts ...grpc.CallOption) (*CreateBech32AddressResponse, error) {
+	out := new(CreateBech32AddressResponse)
+	err := c.cc.Invoke(ctx, UtilityService_CreateBech32Address_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -92,9 +105,18 @@ func (c *utilityServiceClient) DecryptSecret(ctx context.Context, in *DecryptSec
 	return out, nil
 }
 
-func (c *utilityServiceClient) SetAuthzRelationship(ctx context.Context, in *SetAuthzRelationshipRequest, opts ...grpc.CallOption) (*SetAuthzRelationshipResponse, error) {
-	out := new(SetAuthzRelationshipResponse)
-	err := c.cc.Invoke(ctx, UtilityService_SetAuthzRelationship_FullMethodName, in, out, opts...)
+func (c *utilityServiceClient) AuthzRegisterObject(ctx context.Context, in *AuthzRegisterObjectRequest, opts ...grpc.CallOption) (*AuthzRegisterObjectResponse, error) {
+	out := new(AuthzRegisterObjectResponse)
+	err := c.cc.Invoke(ctx, UtilityService_AuthzRegisterObject_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *utilityServiceClient) AuthzSetRelationship(ctx context.Context, in *AuthzSetRelationshipRequest, opts ...grpc.CallOption) (*AuthzSetRelationshipResponse, error) {
+	out := new(AuthzSetRelationshipResponse)
+	err := c.cc.Invoke(ctx, UtilityService_AuthzSetRelationship_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -106,11 +128,13 @@ func (c *utilityServiceClient) SetAuthzRelationship(ctx context.Context, in *Set
 // for forward compatibility
 type UtilityServiceServer interface {
 	CreateDID(context.Context, *CreateDIDRequest) (*CreateDIDResponse, error)
+	CreateBech32Address(context.Context, *CreateBech32AddressRequest) (*CreateBech32AddressResponse, error)
 	CreateJWT(context.Context, *CreateJWTRequest) (*CreateJWTResponse, error)
 	CreateKeypair(context.Context, *CreateKeypairRequest) (*CreateKeypairResponse, error)
 	EncryptSecret(context.Context, *EncryptSecretRequest) (*EncryptSecretResponse, error)
 	DecryptSecret(context.Context, *DecryptSecretRequest) (*DecryptSecretResponse, error)
-	SetAuthzRelationship(context.Context, *SetAuthzRelationshipRequest) (*SetAuthzRelationshipResponse, error)
+	AuthzRegisterObject(context.Context, *AuthzRegisterObjectRequest) (*AuthzRegisterObjectResponse, error)
+	AuthzSetRelationship(context.Context, *AuthzSetRelationshipRequest) (*AuthzSetRelationshipResponse, error)
 	mustEmbedUnimplementedUtilityServiceServer()
 }
 
@@ -120,6 +144,9 @@ type UnimplementedUtilityServiceServer struct {
 
 func (UnimplementedUtilityServiceServer) CreateDID(context.Context, *CreateDIDRequest) (*CreateDIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateDID not implemented")
+}
+func (UnimplementedUtilityServiceServer) CreateBech32Address(context.Context, *CreateBech32AddressRequest) (*CreateBech32AddressResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateBech32Address not implemented")
 }
 func (UnimplementedUtilityServiceServer) CreateJWT(context.Context, *CreateJWTRequest) (*CreateJWTResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateJWT not implemented")
@@ -133,8 +160,11 @@ func (UnimplementedUtilityServiceServer) EncryptSecret(context.Context, *Encrypt
 func (UnimplementedUtilityServiceServer) DecryptSecret(context.Context, *DecryptSecretRequest) (*DecryptSecretResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DecryptSecret not implemented")
 }
-func (UnimplementedUtilityServiceServer) SetAuthzRelationship(context.Context, *SetAuthzRelationshipRequest) (*SetAuthzRelationshipResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetAuthzRelationship not implemented")
+func (UnimplementedUtilityServiceServer) AuthzRegisterObject(context.Context, *AuthzRegisterObjectRequest) (*AuthzRegisterObjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthzRegisterObject not implemented")
+}
+func (UnimplementedUtilityServiceServer) AuthzSetRelationship(context.Context, *AuthzSetRelationshipRequest) (*AuthzSetRelationshipResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthzSetRelationship not implemented")
 }
 func (UnimplementedUtilityServiceServer) mustEmbedUnimplementedUtilityServiceServer() {}
 
@@ -163,6 +193,24 @@ func _UtilityService_CreateDID_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UtilityServiceServer).CreateDID(ctx, req.(*CreateDIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UtilityService_CreateBech32Address_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateBech32AddressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UtilityServiceServer).CreateBech32Address(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UtilityService_CreateBech32Address_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UtilityServiceServer).CreateBech32Address(ctx, req.(*CreateBech32AddressRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -239,20 +287,38 @@ func _UtilityService_DecryptSecret_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UtilityService_SetAuthzRelationship_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetAuthzRelationshipRequest)
+func _UtilityService_AuthzRegisterObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthzRegisterObjectRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UtilityServiceServer).SetAuthzRelationship(ctx, in)
+		return srv.(UtilityServiceServer).AuthzRegisterObject(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UtilityService_SetAuthzRelationship_FullMethodName,
+		FullMethod: UtilityService_AuthzRegisterObject_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UtilityServiceServer).SetAuthzRelationship(ctx, req.(*SetAuthzRelationshipRequest))
+		return srv.(UtilityServiceServer).AuthzRegisterObject(ctx, req.(*AuthzRegisterObjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UtilityService_AuthzSetRelationship_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthzSetRelationshipRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UtilityServiceServer).AuthzSetRelationship(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UtilityService_AuthzSetRelationship_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UtilityServiceServer).AuthzSetRelationship(ctx, req.(*AuthzSetRelationshipRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -267,6 +333,10 @@ var UtilityService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateDID",
 			Handler:    _UtilityService_CreateDID_Handler,
+		},
+		{
+			MethodName: "CreateBech32Address",
+			Handler:    _UtilityService_CreateBech32Address_Handler,
 		},
 		{
 			MethodName: "CreateJWT",
@@ -285,8 +355,12 @@ var UtilityService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UtilityService_DecryptSecret_Handler,
 		},
 		{
-			MethodName: "SetAuthzRelationship",
-			Handler:    _UtilityService_SetAuthzRelationship_Handler,
+			MethodName: "AuthzRegisterObject",
+			Handler:    _UtilityService_AuthzRegisterObject_Handler,
+		},
+		{
+			MethodName: "AuthzSetRelationship",
+			Handler:    _UtilityService_AuthzSetRelationship_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

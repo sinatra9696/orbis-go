@@ -57,6 +57,32 @@ func local_request_UtilityService_CreateDID_0(ctx context.Context, marshaler run
 
 }
 
+func request_UtilityService_CreateBech32Address_0(ctx context.Context, marshaler runtime.Marshaler, client UtilityServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateBech32AddressRequest
+	var metadata runtime.ServerMetadata
+
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.CreateBech32Address(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_UtilityService_CreateBech32Address_0(ctx context.Context, marshaler runtime.Marshaler, server UtilityServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateBech32AddressRequest
+	var metadata runtime.ServerMetadata
+
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.CreateBech32Address(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_UtilityService_CreateJWT_0(ctx context.Context, marshaler runtime.Marshaler, client UtilityServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CreateJWTRequest
 	var metadata runtime.ServerMetadata
@@ -161,28 +187,54 @@ func local_request_UtilityService_DecryptSecret_0(ctx context.Context, marshaler
 
 }
 
-func request_UtilityService_SetAuthzRelationship_0(ctx context.Context, marshaler runtime.Marshaler, client UtilityServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq SetAuthzRelationshipRequest
+func request_UtilityService_AuthzRegisterObject_0(ctx context.Context, marshaler runtime.Marshaler, client UtilityServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq AuthzRegisterObjectRequest
 	var metadata runtime.ServerMetadata
 
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.SetAuthzRelationship(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.AuthzRegisterObject(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_UtilityService_SetAuthzRelationship_0(ctx context.Context, marshaler runtime.Marshaler, server UtilityServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq SetAuthzRelationshipRequest
+func local_request_UtilityService_AuthzRegisterObject_0(ctx context.Context, marshaler runtime.Marshaler, server UtilityServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq AuthzRegisterObjectRequest
 	var metadata runtime.ServerMetadata
 
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.SetAuthzRelationship(ctx, &protoReq)
+	msg, err := server.AuthzRegisterObject(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_UtilityService_AuthzSetRelationship_0(ctx context.Context, marshaler runtime.Marshaler, client UtilityServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq AuthzSetRelationshipRequest
+	var metadata runtime.ServerMetadata
+
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.AuthzSetRelationship(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_UtilityService_AuthzSetRelationship_0(ctx context.Context, marshaler runtime.Marshaler, server UtilityServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq AuthzSetRelationshipRequest
+	var metadata runtime.ServerMetadata
+
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.AuthzSetRelationship(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -215,6 +267,31 @@ func RegisterUtilityServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_UtilityService_CreateDID_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_UtilityService_CreateBech32Address_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/orbis.utility.v1alpha1.UtilityService/CreateBech32Address", runtime.WithHTTPPathPattern("/v1alpha1/utility/address"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_UtilityService_CreateBech32Address_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_UtilityService_CreateBech32Address_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -318,7 +395,7 @@ func RegisterUtilityServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 
 	})
 
-	mux.Handle("POST", pattern_UtilityService_SetAuthzRelationship_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_UtilityService_AuthzRegisterObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -326,12 +403,12 @@ func RegisterUtilityServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/orbis.utility.v1alpha1.UtilityService/SetAuthzRelationship", runtime.WithHTTPPathPattern("/v1alpha1/utility/authz:setrelationship"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/orbis.utility.v1alpha1.UtilityService/AuthzRegisterObject", runtime.WithHTTPPathPattern("/v1alpha1/utility/authz:registerobject"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_UtilityService_SetAuthzRelationship_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_UtilityService_AuthzRegisterObject_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -339,7 +416,32 @@ func RegisterUtilityServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 			return
 		}
 
-		forward_UtilityService_SetAuthzRelationship_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_UtilityService_AuthzRegisterObject_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_UtilityService_AuthzSetRelationship_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/orbis.utility.v1alpha1.UtilityService/AuthzSetRelationship", runtime.WithHTTPPathPattern("/v1alpha1/utility/authz:setrelationship"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_UtilityService_AuthzSetRelationship_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_UtilityService_AuthzSetRelationship_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -403,6 +505,28 @@ func RegisterUtilityServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		}
 
 		forward_UtilityService_CreateDID_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_UtilityService_CreateBech32Address_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/orbis.utility.v1alpha1.UtilityService/CreateBech32Address", runtime.WithHTTPPathPattern("/v1alpha1/utility/address"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_UtilityService_CreateBech32Address_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_UtilityService_CreateBech32Address_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -494,25 +618,47 @@ func RegisterUtilityServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 
 	})
 
-	mux.Handle("POST", pattern_UtilityService_SetAuthzRelationship_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_UtilityService_AuthzRegisterObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/orbis.utility.v1alpha1.UtilityService/SetAuthzRelationship", runtime.WithHTTPPathPattern("/v1alpha1/utility/authz:setrelationship"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/orbis.utility.v1alpha1.UtilityService/AuthzRegisterObject", runtime.WithHTTPPathPattern("/v1alpha1/utility/authz:registerobject"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_UtilityService_SetAuthzRelationship_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_UtilityService_AuthzRegisterObject_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_UtilityService_SetAuthzRelationship_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_UtilityService_AuthzRegisterObject_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_UtilityService_AuthzSetRelationship_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/orbis.utility.v1alpha1.UtilityService/AuthzSetRelationship", runtime.WithHTTPPathPattern("/v1alpha1/utility/authz:setrelationship"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_UtilityService_AuthzSetRelationship_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_UtilityService_AuthzSetRelationship_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -522,6 +668,8 @@ func RegisterUtilityServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 var (
 	pattern_UtilityService_CreateDID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1alpha1", "utility", "did"}, ""))
 
+	pattern_UtilityService_CreateBech32Address_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1alpha1", "utility", "address"}, ""))
+
 	pattern_UtilityService_CreateJWT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1alpha1", "utility", "jwt"}, ""))
 
 	pattern_UtilityService_CreateKeypair_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1alpha1", "utility", "keypair"}, ""))
@@ -530,11 +678,15 @@ var (
 
 	pattern_UtilityService_DecryptSecret_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1alpha1", "utility", "secret"}, "decrypt"))
 
-	pattern_UtilityService_SetAuthzRelationship_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1alpha1", "utility", "authz"}, "setrelationship"))
+	pattern_UtilityService_AuthzRegisterObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1alpha1", "utility", "authz"}, "registerobject"))
+
+	pattern_UtilityService_AuthzSetRelationship_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1alpha1", "utility", "authz"}, "setrelationship"))
 )
 
 var (
 	forward_UtilityService_CreateDID_0 = runtime.ForwardResponseMessage
+
+	forward_UtilityService_CreateBech32Address_0 = runtime.ForwardResponseMessage
 
 	forward_UtilityService_CreateJWT_0 = runtime.ForwardResponseMessage
 
@@ -544,5 +696,7 @@ var (
 
 	forward_UtilityService_DecryptSecret_0 = runtime.ForwardResponseMessage
 
-	forward_UtilityService_SetAuthzRelationship_0 = runtime.ForwardResponseMessage
+	forward_UtilityService_AuthzRegisterObject_0 = runtime.ForwardResponseMessage
+
+	forward_UtilityService_AuthzSetRelationship_0 = runtime.ForwardResponseMessage
 )
