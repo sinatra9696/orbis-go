@@ -12,6 +12,13 @@ service UtilityService {
     };
   }
 
+  rpc CreateBech32Address(CreateBech32AddressRequest) returns (CreateBech32AddressResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/utility/address"
+      body: "*"
+    };
+  }
+
   rpc CreateJWT(CreateJWTRequest) returns (CreateJWTResponse) {
     option (google.api.http) = {
       post: "/v1alpha1/utility/jwt"
@@ -40,7 +47,14 @@ service UtilityService {
     };
   }
 
-  rpc SetAuthzRelationship(SetAuthzRelationshipRequest) returns (SetAuthzRelationshipResponse) {
+  rpc AuthzRegisterObject(AuthzRegisterObjectRequest) returns (AuthzRegisterObjectResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/utility/authz:registerobject"
+      body: "*"
+    };
+  }
+
+  rpc AuthzSetRelationship(AuthzSetRelationshipRequest) returns (AuthzSetRelationshipResponse) {
     option (google.api.http) = {
       post: "/v1alpha1/utility/authz:setrelationship"
       body: "*"
@@ -61,15 +75,38 @@ enum RegistrationResult {
   Unarchived = 2;
 }
 
-message SetAuthzRelationshipRequest {
-  string subject = 1;
-  string policy_id = 2;
+message AuthzRegisterObjectRequest {
+  string policy_id = 1;
+  string creator = 2;
   string object_resource = 3;
   string object_id = 4;
 }
 
-message SetAuthzRelationshipResponse {
+message AuthzRegisterObjectResponse {
   RegistrationResult result = 1;
+}
+
+message AuthzSetRelationshipRequest {
+  string actor = 1;
+  string policy_id = 2;
+  string object_resource = 3;
+  string object_id = 4;
+  string relation = 6;
+  string creator = 7;
+}
+
+message AuthzSetRelationshipResponse {
+  RegistrationResult result = 1;
+}
+
+message CreateBech32AddressRequest {
+  string key_type = 1;
+  bytes public_key = 2;
+  string prefix = 3;
+}
+
+message CreateBech32AddressResponse {
+  string bech32address = 1;
 }
 
 message CreateDIDRequest {
