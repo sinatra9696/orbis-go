@@ -181,10 +181,10 @@ func (d *dkg) processSecretCommits(sc *rabindkg.SecretCommits) error {
 		PriShare: distkey.PriShare(),
 	}
 
-	d.pubKey = distkey.Public()
+	d.distPubKey = distkey.Public()
 	d.state = orbisdkg.CERTIFIED
 
-	log.Infof("Node %d finished setup with shared publick Key: %s", d.index, d.pubKey)
+	log.Infof("Node %d finished setup with shared publick Key: %s", d.index, d.distPubKey)
 	return d.save(context.TODO())
 }
 

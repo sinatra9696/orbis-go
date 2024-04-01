@@ -265,13 +265,14 @@ func dkgToProto(d *dkg) (*rabinv1alpha1.DKG, error) {
 		}
 	}
 
-	var pubkey []byte
+	var distPubKey []byte
 	var err error
-	if d.pubKey != nil {
-		pubkey, err = d.pubKey.MarshalBinary()
+	if d.distPubKey != nil {
+		distPubKey, err = d.distPubKey.MarshalBinary()
 		if err != nil {
 			return nil, fmt.Errorf("couldn't marshal pubkey: %w", err)
 		}
+		log.Warn("saving distPubKey:", distPubKey)
 	}
 
 	var prishare *rabinv1alpha1.PriShare
@@ -316,7 +317,7 @@ func dkgToProto(d *dkg) (*rabinv1alpha1.DKG, error) {
 		Suite:      suiteType,
 		State:      state,
 		Nodes:      nodes,
-		Pubkey:     pubkey,
+		Pubkey:     distPubKey,
 		PriShare:   prishare,
 		F:          fPoly,
 		G:          gPoly,
@@ -396,9 +397,10 @@ func dkgFromProto(d *rabinv1alpha1.DKG) (dkg, error) {
 	}
 
 	// pubkey
-	pubkey := suite.Point()
+	distPubKey := suite.Point()
 	if d.Pubkey != nil {
-		err := pubkey.UnmarshalBinary(d.Pubkey)
+		log.Debug("Unmarshalling distPubKey:", d.Pubkey)
+		err := distPubKey.UnmarshalBinary(d.Pubkey)
 		if err != nil {
 			return dkg{}, fmt.Errorf("unmarshaling pubkey: %w", err)
 		}
@@ -445,7 +447,7 @@ func dkgFromProto(d *rabinv1alpha1.DKG) (dkg, error) {
 		suite:        suite,
 		state:        state,
 		participants: participants,
-		pubKey:       pubkey,
+		distPubKey:   distPubKey,
 		distKeyShare: distKeyShare,
 		fPoly:        fPoly,
 		gPoly:        gPoly,
