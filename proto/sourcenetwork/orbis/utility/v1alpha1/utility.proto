@@ -39,6 +39,37 @@ service UtilityService {
       body: "*"
     };
   }
+
+  rpc SetAuthzRelationship(SetAuthzRelationshipRequest) returns (SetAuthzRelationshipResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/utility/authz:setrelationship"
+      body: "*"
+    };
+  }
+}
+
+// RegistrationResult encodes the possible result set from Registering an Object
+enum RegistrationResult {
+  // NoOp indicates no action was take. The operation failed or the Object already existed and was active
+  NoOp = 0;
+
+  // Registered indicates the Object was sucessfuly registered to the Actor.
+  Registered = 1;
+
+  // Unarchived indicates that a previously deleted Object is active again.
+  // Only the original owners can Unarchive an object.
+  Unarchived = 2;
+}
+
+message SetAuthzRelationshipRequest {
+  string subject = 1;
+  string policy_id = 2;
+  string object_resource = 3;
+  string object_id = 4;
+}
+
+message SetAuthzRelationshipResponse {
+  RegistrationResult result = 1;
 }
 
 message CreateDIDRequest {
