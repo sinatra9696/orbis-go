@@ -17,7 +17,7 @@ var (
 
 type selfSignedFactory struct{}
 
-func (selfSignedFactory) New(inj *do.Injector, rkeys []db.RepoKey, _ config.Config) (authn.CredentialService, error) {
+func (selfSignedFactory) New(inj *do.Injector, rkeys []db.RepoKey, cfg config.Config) (authn.CredentialService, error) {
 	resolver, err := do.Invoke[authn.KeyResolver](inj)
 	if err != nil {
 		return nil, fmt.Errorf("invoke key resolver: %w", err)
@@ -26,7 +26,7 @@ func (selfSignedFactory) New(inj *do.Injector, rkeys []db.RepoKey, _ config.Conf
 	if err != nil {
 		return nil, fmt.Errorf("invoke metadata parser: %w", err)
 	}
-	return NewSelfSignedCredentialService(resolver, metadataFn), nil
+	return NewSelfSignedCredentialService(resolver, metadataFn, cfg.Cosmos.AddressPrefix), nil
 }
 
 func (selfSignedFactory) Name() string {

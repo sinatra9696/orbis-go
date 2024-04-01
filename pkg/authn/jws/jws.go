@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cometbft/cometbft/crypto/tmhash"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/go-jose/go-jose/v3"
 	"github.com/go-jose/go-jose/v3/jwt"
 	logging "github.com/ipfs/go-log"
@@ -34,12 +36,14 @@ var _ authn.CredentialService = (*credentialSrv)(nil)
 type credentialSrv struct {
 	resolver       authn.KeyResolver
 	metadataParser authn.RequestMetadataParser
+	addressPrefix  string
 }
 
-func NewSelfSignedCredentialService(resolver authn.KeyResolver, metadataParser authn.RequestMetadataParser) authn.CredentialService {
+func NewSelfSignedCredentialService(resolver authn.KeyResolver, metadataParser authn.RequestMetadataParser, addressPrefix string) authn.CredentialService {
 	return credentialSrv{
 		resolver:       resolver,
 		metadataParser: metadataParser,
+		addressPrefix:  addressPrefix,
 	}
 }
 
@@ -106,8 +110,8 @@ func (c credentialSrv) VerifyRequestSubject(ctx context.Context, token []byte) (
 	expected := jwt.Expected{
 		Audience: jwt.Audience{OrbisJWSAudience},
 		Issuer:   userInfo.Subject,
-		Subject:  userInfo.Subject,
-		Time:     claims.Expiry.Time().Add(verifyLeewayTime),
+		// Subject:  userInfo.Subject,
+		Time: claims.Expiry.Time().Add(verifyLeewayTime),
 	}
 
 	err = claims.ValidateWithLeeway(expected, verifyLeewayTime)
@@ -115,9 +119,31 @@ func (c credentialSrv) VerifyRequestSubject(ctx context.Context, token []byte) (
 		return authn.SubjectInfo{}, fmt.Errorf("JWS claim failed validation: %w", err)
 	}
 
+	// validate subject, either its a did:key that *must* match
+	// the Issuer, or its a cosmos bech32 address that *must* also
+	// match the Issuer
+	subject := claims.Subject
+	if strings.HasPrefix(subject, "did:key") {
+		if subject != claims.Issuer {
+			return authn.SubjectInfo{}, fmt.Errorf("JWS subject did:key verification failed")
+		}
+	} else {
+		if c.addressPrefix == "" {
+			return authn.SubjectInfo{}, fmt.Errorf("bech32 verification missing prefix")
+		}
+		// verify bech32 address
+		addr, err := publicKeyToBech32(c.addressPrefix, userInfo.PubKey)
+		if err != nil {
+			return authn.SubjectInfo{}, fmt.Errorf("JWS subject bech32 verification failed: %w", err)
+		}
+		if addr != subject {
+			return authn.SubjectInfo{}, fmt.Errorf("JWS subject bech32 mismatch")
+		}
+	}
+
 	return authn.SubjectInfo{
 		Type:    "JWS",
-		Subject: userInfo.Subject,
+		Subject: subject,
 		PubKey:  userInfo.PubKey,
 	}, nil
 }
@@ -144,6 +170,16 @@ func JWKFromPublicKey(pk crypto.PublicKey) (*jose.JSONWebKey, error) {
 	return &jose.JSONWebKey{
 		Key: key,
 	}, nil
+}
+
+func publicKeyToBech32(prefix string, publicKey crypto.PublicKey) (string, error) {
+	keyraw, err := publicKey.Raw()
+	if err != nil {
+		return "", fmt.Errorf("raw public key: %w", err)
+	}
+	buf := tmhash.SumTruncated(keyraw)
+	return bech32.ConvertAndEncode(prefix, buf)
+
 }
 
 type claims struct {

@@ -22,13 +22,24 @@ import (
 )
 
 var (
-	testKID     = "alice#key"
-	testSubject = "alice"
+	testKID     = "did:key:alice#key"
+	testSubject = "did:key:alice"
 
 	ed25519PrivKey, ed25519PubKey = mustGeneratePrivateKey()
 	cryptoPubKey                  = mustGetPublicKey(ed25519PubKey)
 	ed25519Signer                 = mustMakeSigner(jose.EdDSA, ed25519PrivKey, testKID)
+
+	addressPresfix = "source"
+	testAddress    = mustGenerateBech32Address(addressPresfix, cryptoPubKey)
 )
+
+func mustGenerateBech32Address(prefix string, pk crypto.PublicKey) string {
+	addr, err := publicKeyToBech32(prefix, pk)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
 
 func mustGeneratePrivateKey() (ed25519.PrivateKey, ed25519.PublicKey) {
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
@@ -57,7 +68,7 @@ func mustMakeSigner(alg jose.SignatureAlgorithm, k interface{}, kid string) jose
 	return sig
 }
 
-func TestJWSCredentialService(t *testing.T) {
+func TestJWSCredentialServicDID(t *testing.T) {
 	ed25519PrivKey, ed25519PubKey = mustGeneratePrivateKey()
 	cryptoPubKey = mustGetPublicKey(ed25519PubKey)
 	ed25519Signer = mustMakeSigner(jose.EdDSA, ed25519PrivKey, testKID)
@@ -100,7 +111,7 @@ func TestJWSCredentialService(t *testing.T) {
 
 	// Actual test block
 	ctx := context.Background()
-	credService := NewSelfSignedCredentialService(mockResolver, mockReqParser)
+	credService := NewSelfSignedCredentialService(mockResolver, mockReqParser, "")
 	token, err := credService.GetRequestToken(ctx)
 	require.NoError(t, err)
 	require.NotNil(t, token)
@@ -109,6 +120,64 @@ func TestJWSCredentialService(t *testing.T) {
 	require.NotEmpty(t, info)
 	require.Equal(t, authn.SubjectInfo{
 		Subject: testSubject,
+		PubKey:  cryptoPubKey,
+		Type:    "JWS",
+	}, info)
+}
+
+func TestJWSCredentialServicBech32(t *testing.T) {
+	ed25519PrivKey, ed25519PubKey = mustGeneratePrivateKey()
+	cryptoPubKey = mustGetPublicKey(ed25519PubKey)
+	ed25519Signer = mustMakeSigner(jose.EdDSA, ed25519PrivKey, testKID)
+	testAddress = mustGenerateBech32Address(addressPresfix, cryptoPubKey)
+
+	// create signed JWT token
+	claims := claims{
+		Claims: jwt.Claims{
+			Subject:  testAddress,
+			Issuer:   testSubject,
+			Expiry:   jwt.NewNumericDate(time.Now()),
+			Audience: jwt.Audience{"orbis"},
+		},
+	}
+	signedJWT, err := jwt.Signed(ed25519Signer).
+		Claims(claims).
+		CompactSerialize()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// setup mocks
+
+	// mock the request metadata and inject the test JWT into it
+	// Get("authorization") => []string{signedJWT}}
+	mockMD := mocks.NewMetadata(t)
+	mockMD.EXPECT().Get(TokenMetadataKey).Return([]string{tokenPrefix + signedJWT})
+
+	// mock the request parser and inject the above mocked metadata
+	// Parse(ctx) => Metadata{"authorization": []string{signedJWT}}
+	mockReqParser := mocks.NewRequestMetadataParser(t)
+	mockReqParser.EXPECT().Parse(mock.Anything).Return(mockMD, true)
+
+	// mock the key resolver to return our generated keys
+	// Resolve(ctx, "alice#key") => SubjectInfo{"alice", publicKey}
+	mockResolver := mocks.NewKeyResolver(t)
+	mockResolver.EXPECT().Resolve(mock.Anything, testKID).Return(authn.SubjectInfo{
+		Subject: testSubject,
+		PubKey:  cryptoPubKey,
+	}, nil)
+
+	// Actual test block
+	ctx := context.Background()
+	credService := NewSelfSignedCredentialService(mockResolver, mockReqParser, addressPresfix)
+	token, err := credService.GetRequestToken(ctx)
+	require.NoError(t, err)
+	require.NotNil(t, token)
+	info, err := credService.VerifyRequestSubject(ctx, token)
+	require.NoError(t, err)
+	require.NotEmpty(t, info)
+	require.Equal(t, authn.SubjectInfo{
+		Subject: testAddress,
 		PubKey:  cryptoPubKey,
 		Type:    "JWS",
 	}, info)
@@ -160,7 +229,7 @@ func TestDIDKeyJWSCredentialService(t *testing.T) {
 
 	// Actual test block
 	ctx := context.Background()
-	credService := NewSelfSignedCredentialService(resolver, mockReqParser)
+	credService := NewSelfSignedCredentialService(resolver, mockReqParser, "")
 	token, err := credService.GetRequestToken(ctx)
 	require.NoError(t, err)
 	require.NotNil(t, token)
