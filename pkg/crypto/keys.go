@@ -9,6 +9,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	ic "github.com/libp2p/go-libp2p/core/crypto"
 	icpb "github.com/libp2p/go-libp2p/core/crypto/pb"
 	"go.dedis.ch/kyber/v3"
@@ -71,6 +72,13 @@ func PublicKeyFromStdPublicKey(pubkey gocrypto.PublicKey) (PublicKey, error) {
 		icpk, err = ic.UnmarshalEd25519PublicKey(pkt)
 	case ecdsa.PublicKey:
 		icpk, err = ic.ECDSAPublicKeyFromPubKey(pkt)
+	case *ecdsa.PublicKey:
+		icpk, err = ic.ECDSAPublicKeyFromPubKey(*pkt)
+	case secp256k1.PublicKey:
+		sppk := ic.Secp256k1PublicKey(pkt)
+		icpk = &sppk
+	case *secp256k1.PublicKey:
+		icpk = (*ic.Secp256k1PublicKey)(pkt)
 	default:
 		return nil, fmt.Errorf("unknown key type")
 	}
@@ -78,6 +86,7 @@ func PublicKeyFromStdPublicKey(pubkey gocrypto.PublicKey) (PublicKey, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return publicKeyFromLibP2P(icpk)
 }
 
@@ -110,6 +119,29 @@ func PublicKeyFromPoint(suite suites.Suite, point kyber.Point) (PublicKey, error
 	return PublicKeyFromLibP2P(pk)
 }
 
+func PublicKeyFromBytes(keyType string, buf []byte) (PublicKey, error) {
+	var pk ic.PubKey
+	var err error
+	switch strings.ToLower(keyType) {
+	case "ed25519":
+		pk, err = ic.UnmarshalEd25519PublicKey(buf)
+	case "secp256k1":
+		pk, err = ic.UnmarshalSecp256k1PublicKey(buf)
+	case "ecdsa":
+		pk, err = ic.UnmarshalECDSAPublicKey(buf)
+	case "rsa":
+		pk, err = ic.UnmarshalRsaPublicKey(buf)
+	default:
+		return nil, ErrBadKeyType
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("public key from bytes: %w", err)
+	}
+
+	return PublicKeyFromLibP2P(pk)
+}
+
 func publicKeyFromLibP2P(pubkey ic.PubKey) (*pubKey, error) {
 	suite, err := SuiteForType(pubkey.Type())
 	if err != nil {
@@ -128,6 +160,7 @@ func PublicKeyToProto(pk PublicKey) (*icpb.PublicKey, error) {
 }
 
 func (p *pubKey) Point() kyber.Point {
+	fmt.Println("pubkey.Point(): suite:", p.suite.String())
 	buf, _ := p.PubKey.Raw()
 	point := p.suite.Point()
 	point.UnmarshalBinary(buf)
@@ -135,6 +168,13 @@ func (p *pubKey) Point() kyber.Point {
 }
 
 func (p *pubKey) Std() (gocrypto.PublicKey, error) {
+	// our version of "standard" secp256k1 keys uses the
+	// dcred type directly, as its more common among our
+	// dependencies (like go-jose)
+	switch pk := p.PubKey.(type) {
+	case *ic.Secp256k1PublicKey:
+		return (*secp256k1.PublicKey)(pk), nil
+	}
 	return ic.PubKeyToStdKey(p.PubKey)
 }
 
@@ -174,6 +214,29 @@ func GenerateKeyPair(ste suites.Suite, src io.Reader) (PrivateKey, PublicKey, er
 		}, nil
 }
 
+func PrivateKeyFromBytes(keyType string, buf []byte) (PrivateKey, error) {
+	var pk ic.PrivKey
+	var err error
+	switch strings.ToLower(keyType) {
+	case "ed25519":
+		pk, err = ic.UnmarshalEd25519PrivateKey(buf)
+	case "secp256k1":
+		pk, err = ic.UnmarshalSecp256k1PrivateKey(buf)
+	case "ecdsa":
+		pk, err = ic.UnmarshalECDSAPrivateKey(buf)
+	case "rsa":
+		pk, err = ic.UnmarshalRsaPrivateKey(buf)
+	default:
+		return nil, ErrBadKeyType
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("public key from bytes: %w", err)
+	}
+
+	return PrivateKeyFromLibP2P(pk)
+}
+
 func PrivateKeyFromLibP2P(privkey ic.PrivKey) (PrivateKey, error) {
 	suite, err := SuiteForType(privkey.Type())
 	if err != nil {
@@ -189,8 +252,28 @@ func PrivateKeyFromLibP2P(privkey ic.PrivKey) (PrivateKey, error) {
 // Scalar returns a numeric elliptic curve scalar
 // representation of the private key.
 //
-// WARNING: THIS ONLY WORDS WITH Edwards25519 CURVES RIGHT NOW.
+// WARNING: THIS ONLY WORDS WITH ED25519 & SECP256K1 CURVES RIGHT NOW.
 func (p *privKey) Scalar() kyber.Scalar {
+	switch p.Type() {
+	case icpb.KeyType_Ed25519:
+		return p.ed25519Scalar()
+	case icpb.KeyType_Secp256k1:
+		return p.secp256k1Scalar()
+	default:
+		panic("only ed25519 and secp256k1 private key scalar conversion supported")
+	}
+}
+
+func (p *privKey) secp256k1Scalar() kyber.Scalar {
+	buf, err := p.Raw()
+	if err != nil {
+		panic(err) // todo
+	}
+
+	return p.suite.Scalar().SetBytes(buf)
+}
+
+func (p *privKey) ed25519Scalar() kyber.Scalar {
 	// There is a discrepency between LibP2P private keys
 	// and "raw" EC scalars. LibP2P private keys is an
 	// (x, y) pair, where x is the given "seed" and y is
@@ -240,8 +323,4 @@ type DistKeyShare struct {
 // PubPoly
 type PubPoly struct {
 	*share.PubPoly
-}
-
-func setScalarWithClamp(s kyber.Scalar, buf []byte) {
-
 }

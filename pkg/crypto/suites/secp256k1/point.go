@@ -196,8 +196,8 @@ func (P *secp256k1Point) Mul(s kyber.Scalar, a kyber.Point) kyber.Point {
 }
 
 // MarshalBinary returns the concatenated big-endian representation of the X
-// ordinate and a byte which is 0 if Y is even, 1 if it's odd. Or it returns an
-// error on failure.
+// cordinate and a format byte which is 0x02 if Y is even, 0x03 if it's odd.
+// Or it returns an error on failure.
 func (P *secp256k1Point) MarshalBinary() ([]byte, error) {
 	maybeSqrt := maybeSqrtInField(rightHandSide(P.X))
 	if maybeSqrt == (*fieldElt)(nil) {
@@ -209,16 +209,16 @@ func (P *secp256k1Point) MarshalBinary() ([]byte, error) {
 			"y ≠ ±maybeSqrt(x³+7), so not a point on the curve")
 	}
 	rv := make([]byte, P.MarshalSize())
-	signByte := P.MarshalSize() - 1 // Last byte contains sign of Y.
+	// signByte := P.MarshalSize() - 1 // Last byte contains sign of Y.
 	xordinate := P.X.Bytes()
-	copyLen := copy(rv[:signByte], xordinate[:])
+	copyLen := copy(rv[1:P.MarshalSize()], xordinate[:])
 	if copyLen != P.MarshalSize()-1 {
 		return []byte{}, fmt.Errorf("marshal of x ordinate too short")
 	}
 	if P.Y.isEven() {
-		rv[signByte] = 0
+		rv[0] = 0x02
 	} else {
-		rv[signByte] = 1
+		rv[0] = 0x03
 	}
 	return rv, nil
 }
@@ -238,14 +238,14 @@ func (P *secp256k1Point) UnmarshalBinary(buf []byte) error {
 	if len(buf) != P.MarshalSize() {
 		err = fmt.Errorf("wrong length for marshaled point")
 	}
-	if err == nil && !(buf[32] == 0 || buf[32] == 1) {
-		err = fmt.Errorf("bad sign byte (the last one)")
+	if err == nil && !(buf[0] == 0x02 || buf[0] == 0x03) {
+		err = fmt.Errorf("bad format byte (the first one)")
 	}
 	if err != nil {
 		return err
 	}
 	var xordinate [32]byte
-	copy(xordinate[:], buf[:32])
+	copy(xordinate[:], buf[1:])
 	P.X = newFieldZero().SetBytes(xordinate)
 	secp256k1RHS := rightHandSide(P.X)
 	maybeY := maybeSqrtInField(secp256k1RHS)
@@ -254,12 +254,8 @@ func (P *secp256k1Point) UnmarshalBinary(buf []byte) error {
 	}
 	isEven := maybeY.isEven()
 	P.Y.Set(maybeY)
-	if (buf[32] == 0 && !isEven) || (buf[32] == 1 && isEven) {
+	if (buf[0] == 0x02 && !isEven) || (buf[0] == 0x03 && isEven) {
 		P.Y.Neg(P.Y)
-	} else {
-		if buf[32] != 0 && buf[32] != 1 {
-			return fmt.Errorf("parity byte must be 0 or 1")
-		}
 	}
 	return nil
 }

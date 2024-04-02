@@ -1,13 +1,12 @@
 package crypto
 
 import (
-	"math/rand"
+	"strings"
 
 	icpb "github.com/libp2p/go-libp2p/core/crypto/pb"
 	"github.com/sourcenetwork/orbis-go/pkg/crypto/suites/secp256k1"
 	"go.dedis.ch/kyber/v3/group/edwards25519"
 	"go.dedis.ch/kyber/v3/suites"
-	"go.dedis.ch/kyber/v3/util/random"
 	"go.dedis.ch/protobuf"
 )
 
@@ -25,13 +24,24 @@ func init() {
 
 func SuiteForType(kt icpb.KeyType) (suites.Suite, error) {
 	switch kt {
-	case icpb.KeyType_Secp256k1:
+	case icpb.KeyType_Secp256k1, icpb.KeyType_ECDSA:
 		return secp256k1.NewBlakeKeccackSecp256k1(), nil
 	case icpb.KeyType_Ed25519:
 		// TODO
-		reader := rand.New(rand.NewSource(0))
-		r := random.New(reader)
-		return edwards25519.NewBlakeSHA256Ed25519WithRand(r), nil
+		// reader := rand.New(rand.NewSource(0))
+		// r := random.New(reader)
+		return edwards25519.NewBlakeSHA256Ed25519(), nil
+	default:
+		return nil, ErrBadKeyType
+	}
+}
+
+func FindSuite(name string) (suites.Suite, error) {
+	switch strings.ToLower(name) {
+	case "ed25519":
+		return edwards25519.NewBlakeSHA256Ed25519(), nil
+	case "secp256k1":
+		return secp256k1.NewBlakeKeccackSecp256k1(), nil
 	default:
 		return nil, ErrBadKeyType
 	}
