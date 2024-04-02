@@ -11,6 +11,7 @@ logger:
 host:
   crypto:
     seed: 1
+    type: secp256k1
   listenAddresses:
     - /ip4/0.0.0.0/tcp/9001
 
