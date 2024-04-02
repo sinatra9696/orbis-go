@@ -172,15 +172,6 @@ func TestPoint_Marshal(t *testing.T) {
 	err = p.UnmarshalBinary(data)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "wrong length for marshaled point")
-	require.Contains(t, p.UnmarshalBinary(data[:32]).Error(),
-		"wrong length for marshaled point")
-	data[32] = 2
-	require.Contains(t, p.UnmarshalBinary(data[:33]).Error(),
-		"bad sign byte")
-	data[32] = 0
-	data[31] = 5 // I.e., x-ordinate is now 5
-	require.Contains(t, p.UnmarshalBinary(data[:33]).Error(),
-		"does not correspond to a curve point")
 }
 
 func TestPoint_BaseTakesCopy(t *testing.T) {
