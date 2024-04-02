@@ -1,0 +1,40 @@
+grpc:
+  grpcURL: "0.0.0.0:8082"
+  restURL: "0.0.0.0:8092"
+  logging: true
+
+logger:
+  level: "debug"
+  zap:
+    encoding: "dev"
+
+host:
+  crypto:
+    seed: 2
+    type: secp256k1
+  listenAddresses:
+    - /ip4/0.0.0.0/tcp/9002
+  bootstrap_peers:
+    - /dns4/orbisd1/tcp/9001/p2p/16Uiu2HAm35sSr96x1TJHBTkWdcDH9P8twhTw92iDyq38XvyGzgZN
+
+bulletin:
+  p2p:
+    rendezvous: "orbis-bulletin"
+    persistentPeers: "/dns4/orbisd1/tcp/9001/p2p/16Uiu2HAm35sSr96x1TJHBTkWdcDH9P8twhTw92iDyq38XvyGzgZN"
+
+transport:
+  rendezvous: "orbis-transport"
+
+authz:
+  address: zanzid:8080
+
+db:
+  path: "data2"
+
+cosmos:
+  chainId: sourcehub-testnet1
+  accountName: validator2
+  keyringBackend: test
+  addressPrefix: source
+  fees: 30stake
+  rpcAddress: http://host.docker.internal:26657

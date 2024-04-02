@@ -11,6 +11,9 @@ sourcehubd keys add ${VALIDATOR1} --keyring-backend test
 sourcehubd keys add ${VALIDATOR2} --keyring-backend test
 sourcehubd keys add ${VALIDATOR3} --keyring-backend test
 
+# Alice Address source1pphyea5mugea9lslrt5gq9qxqeax48qlqrxs8n
+# Bob Address source140c46qwh7dqjfk9cck67am746tqn8vuegsym2t
+
 VALIDATOR1_ADDRESS=$(sourcehubd keys show ${VALIDATOR1} --address --keyring-backend test)
 VALIDATOR2_ADDRESS=$(sourcehubd keys show ${VALIDATOR2} --address --keyring-backend test)
 VALIDATOR3_ADDRESS=$(sourcehubd keys show ${VALIDATOR3} --address --keyring-backend test)
