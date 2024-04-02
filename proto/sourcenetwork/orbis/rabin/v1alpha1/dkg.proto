@@ -34,6 +34,7 @@ message DKG {
   PriPoly f = 10;
   PriPoly g = 11;
   bytes poly_secret = 12;
+  repeated bytes share_commits = 13;
 }
 
 message Node {
