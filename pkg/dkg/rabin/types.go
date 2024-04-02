@@ -270,6 +270,8 @@ func dkgToProto(d *dkg) (*rabinv1alpha1.DKG, error) {
 	if d.distPubKey != nil {
 		distPubKey, err = d.distPubKey.MarshalBinary()
 		if err != nil {
+			fmt.Println("dkg state", d.State())
+			fmt.Println("distpubkey", d.distPubKey)
 			return nil, fmt.Errorf("couldn't marshal pubkey: %w", err)
 		}
 	}
@@ -284,6 +286,19 @@ func dkgToProto(d *dkg) (*rabinv1alpha1.DKG, error) {
 		prishare = &rabinv1alpha1.PriShare{
 			Index: int32(share.I),
 			V:     sbuf,
+		}
+	}
+
+	var shareCommits [][]byte
+	commits := d.distKeyShare.Commits
+	if commits != nil {
+		shareCommits = make([][]byte, len(commits))
+		for i, cmt := range commits {
+			buf, err := cmt.MarshalBinary()
+			if err != nil {
+				return nil, fmt.Errorf("couldn't marshal share commitment: %w", err)
+			}
+			shareCommits[i] = buf
 		}
 	}
 
@@ -309,18 +324,19 @@ func dkgToProto(d *dkg) (*rabinv1alpha1.DKG, error) {
 	}
 
 	return &rabinv1alpha1.DKG{
-		RingId:     string(d.ringID),
-		Index:      int32(d.index),
-		Num:        d.num,
-		Threshold:  d.threshold,
-		Suite:      suiteType,
-		State:      state,
-		Nodes:      nodes,
-		Pubkey:     distPubKey,
-		PriShare:   prishare,
-		F:          fPoly,
-		G:          gPoly,
-		PolySecret: polySecret,
+		RingId:       string(d.ringID),
+		Index:        int32(d.index),
+		Num:          d.num,
+		Threshold:    d.threshold,
+		Suite:        suiteType,
+		State:        state,
+		Nodes:        nodes,
+		Pubkey:       distPubKey,
+		PriShare:     prishare,
+		ShareCommits: shareCommits,
+		F:            fPoly,
+		G:            gPoly,
+		PolySecret:   polySecret,
 	}, nil
 }
 
@@ -396,8 +412,9 @@ func dkgFromProto(d *rabinv1alpha1.DKG) (dkg, error) {
 	}
 
 	// pubkey
-	distPubKey := suite.Point()
+	var distPubKey kyber.Point
 	if d.Pubkey != nil {
+		distPubKey = suite.Point()
 		log.Debug("Unmarshalling distPubKey:", d.Pubkey)
 		err := distPubKey.UnmarshalBinary(d.Pubkey)
 		if err != nil {
@@ -406,15 +423,25 @@ func dkgFromProto(d *rabinv1alpha1.DKG) (dkg, error) {
 	}
 
 	// share
-	// TODO: Commitments
 	var distKeyShare crypto.DistKeyShare
-	distKeyShare.PriShare = new(share.PriShare)
 	if d.PriShare != nil {
+		distKeyShare.PriShare = new(share.PriShare)
 		distKeyShare.PriShare.I = int(d.PriShare.Index)
 		distKeyShare.PriShare.V = suite.Scalar()
 		err := distKeyShare.PriShare.V.UnmarshalBinary(d.PriShare.V)
 		if err != nil {
 			return dkg{}, fmt.Errorf("unmarshaling prishare: %w", err)
+		}
+	}
+
+	if d.ShareCommits != nil {
+		distKeyShare.Commits = make([]kyber.Point, len(d.ShareCommits))
+		for i, cmt := range d.ShareCommits {
+			distKeyShare.Commits[i] = suite.Point()
+			err := distKeyShare.Commits[i].UnmarshalBinary(cmt)
+			if err != nil {
+				return dkg{}, fmt.Errorf("unmarshalling commits: %w", err)
+			}
 		}
 	}
 

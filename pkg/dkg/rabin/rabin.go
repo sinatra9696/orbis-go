@@ -711,6 +711,7 @@ func (d *dkg) loadUnsafe(ctx context.Context) error {
 	d.suite = _d.suite
 	d.state = _d.state
 	d.distPubKey = _d.distPubKey
+	d.distKeyShare = _d.distKeyShare
 	d.participants = _d.participants
 	d.fPoly = _d.fPoly
 	d.gPoly = _d.gPoly
