@@ -202,6 +202,7 @@ func (d *dkg) initFromNew(ctx context.Context, pk crypto.PrivateKey, rid types.R
 	}
 
 	suite, err := crypto.SuiteForType(pk.Type())
+	log.Debug("dkg initialized with suite type:", suite.String())
 	if err != nil {
 		return fmt.Errorf("get suite for type: %w", err)
 	}
@@ -212,6 +213,8 @@ func (d *dkg) initFromNew(ctx context.Context, pk crypto.PrivateKey, rid types.R
 	d.pubKey = suite.Point().Mul(d.privKey, nil) // public point for scalar
 	d.num = n
 	d.threshold = threshold
+	fmt.Println("rabin host public key (extracted)", pk.GetPublic().Point().String())
+	fmt.Println("rabin host public key (computed)", d.pubKey.String())
 
 	if len(nodes) != int(n) {
 		return orbisdkg.ErrBadNodeSet
@@ -222,6 +225,7 @@ func (d *dkg) initFromNew(ctx context.Context, pk crypto.PrivateKey, rid types.R
 	points := make([]kyber.Point, 0, len(d.participants))
 	for i, n := range d.participants {
 		point := n.PublicKey().Point()
+		fmt.Println("rabin init node public key:", n.PublicKey(), n.PublicKey().Point())
 		if point.Equal(d.pubKey) {
 			d.index = i
 		}

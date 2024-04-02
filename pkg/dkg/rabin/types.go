@@ -272,7 +272,6 @@ func dkgToProto(d *dkg) (*rabinv1alpha1.DKG, error) {
 		if err != nil {
 			return nil, fmt.Errorf("couldn't marshal pubkey: %w", err)
 		}
-		log.Warn("saving distPubKey:", distPubKey)
 	}
 
 	var prishare *rabinv1alpha1.PriShare
