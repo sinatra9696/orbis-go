@@ -99,7 +99,6 @@ func parsePermToCheckRequest(permission string) (checkRequest, error) {
 	}
 
 	results := r.FindStringSubmatch(permission)
-	fmt.Println(results)
 	if len(results) != 5 {
 		return checkRequest{}, fmt.Errorf("regex submatch size: %d", len(results))
 	}

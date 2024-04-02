@@ -39,7 +39,6 @@ func (r resolver) Resolve(ctx context.Context, id string) (authn.SubjectInfo, er
 	if suffix != "" {
 		verKeyID = suffix
 	}
-	fmt.Println("VERIFICATION KEY TYPE:", result.VerificationMethod[0].Type.String())
 	stdPk, err := did.GetKeyFromVerificationMethod(result.Document, verKeyID)
 	if err != nil {
 		return authn.SubjectInfo{}, fmt.Errorf("did document to public key: %w", err)

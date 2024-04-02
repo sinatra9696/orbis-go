@@ -168,8 +168,6 @@ func traverseAndBuildDefault(v reflect.Value) error {
 		default:
 			return fmt.Errorf("unsupported type: %q, for entry: %q", kind, name)
 		}
-		fmt.Println(name, kind, val, defaultValue)
-		fmt.Println("can set", f.CanSet())
 		f.Set(reflect.ValueOf(defaultValue))
 	}
 

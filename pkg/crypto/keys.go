@@ -164,7 +164,6 @@ func PublicKeyToProto(pk PublicKey) (*icpb.PublicKey, error) {
 }
 
 func (p *pubKey) Point() kyber.Point {
-	fmt.Println("pubkey.Point(): suite:", p.suite.String())
 	buf, _ := p.PubKey.Raw()
 	point := p.suite.Point()
 	point.UnmarshalBinary(buf)

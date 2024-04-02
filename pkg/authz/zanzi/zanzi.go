@@ -67,13 +67,11 @@ func (z *zanziGRPC) Check(ctx context.Context, perm string, subject string) (boo
 	}
 	checkReq.AccessRequest.Subject = domain.NewEntity(subjects[0], subjects[1])
 
-	fmt.Println("zanzi check req:", checkReq)
 	resp, err := z.relationClient.Check(ctx, checkReq)
 	if err != nil {
 		return false, fmt.Errorf("check rpc: %w", err)
 	}
 
-	fmt.Println("zanzi check resp:", resp)
 	return resp.Result.Authorized, nil
 }
 
@@ -95,7 +93,6 @@ func parsePermToCheckRequest(permission string) (*api.CheckRequest, error) {
 	}
 
 	results := r.FindStringSubmatch(permission)
-	fmt.Println(results)
 	if len(results) != 5 {
 		return nil, fmt.Errorf("regex submatch size: %d", len(results))
 	}
