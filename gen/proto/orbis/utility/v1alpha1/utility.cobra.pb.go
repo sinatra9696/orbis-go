@@ -112,7 +112,6 @@ func _UtilityServiceCreateBech32AddressCommand(cfg *client.Config) *cobra.Comman
 		},
 	}
 
-	cmd.PersistentFlags().StringVar(&req.KeyType, cfg.FlagNamer("KeyType"), "", "")
 	flag.BytesBase64Var(cmd.PersistentFlags(), &req.PublicKey, cfg.FlagNamer("PublicKey"), "")
 	cmd.PersistentFlags().StringVar(&req.Prefix, cfg.FlagNamer("Prefix"), "", "")
 
