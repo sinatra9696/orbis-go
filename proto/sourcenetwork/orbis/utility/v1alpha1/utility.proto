@@ -100,9 +100,8 @@ message AuthzSetRelationshipResponse {
 }
 
 message CreateBech32AddressRequest {
-  string key_type = 1;
-  bytes public_key = 2;
-  string prefix = 3;
+  bytes public_key = 1;
+  string prefix = 2;
 }
 
 message CreateBech32AddressResponse {
