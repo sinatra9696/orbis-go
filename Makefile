@@ -6,8 +6,8 @@ build:
 	go build -o build/orbisd ./cmd/orbisd 
 
 run:
-	docker-compose -f demo/compose.yaml down -v
-	docker-compose -f demo/compose.yaml up
+	docker-compose -f demo/acp/compose.yaml down -v
+	docker-compose -f demo/acp/compose.yaml up
 
 
 rund:

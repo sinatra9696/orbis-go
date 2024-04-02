@@ -1,0 +1,102 @@
+version: "3.9"
+
+volumes:
+  demo-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ../acp
+      o: bind
+  sourcehub-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: $HOME/.sourcehub
+      o: bind
+
+x-orbisd: &orbisd
+  tty: true
+  stdin_open: true
+  image: ko.local/orbisd
+  volumes:
+    - demo-data:/demo
+    - sourcehub-data:/root/.sourcehub
+  # For Linux platforms to access the host machine using the host.docker.internal DNS name.
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+
+services:
+  zanzid:
+    tty: true
+    stdin_open: true
+    image: ko.local/zanzid
+    volumes:
+      - demo-data:/demo
+    command: []
+    ports:
+      - "8080:8080"
+      - "8090:8090"
+
+  orbisd1:
+    <<: *orbisd
+    depends_on:
+      sourcehubd:
+        condition: service_started
+    command: ["start", "--config", "/demo/orbis.1.yaml"]
+    ports:
+      - "9001:9001"
+      - "8081:8081"
+      - "8091:8091"
+
+  orbisd2:
+    <<: *orbisd
+    depends_on:
+      sourcehubd:
+        condition: service_started
+    command: ["start", "--config", "/demo/orbis.2.yaml"]
+    ports:
+      - "9002:9002"
+      - "8082:8082"
+      - "8092:8092"
+
+  orbisd3:
+    <<: *orbisd
+    depends_on:
+      sourcehubd:
+        condition: service_started
+    command: ["start", "--config", "/demo/orbis.3.yaml"]
+    ports:
+      - "9003:9003"
+      - "8083:8083"
+      - "8093:8093"
+  
+  sourcehubd-init:
+    image: ko.local/sourcehubd
+    volumes:
+      - demo-data:/demo
+      - sourcehub-data:/root/.sourcehub
+    entrypoint: /demo/sourcehub-init.sh
+
+  sourcehubd:
+    depends_on:
+      sourcehubd-init:
+        condition: service_completed_successfully
+    tty: true
+    stdin_open: true
+    image: ko.local/sourcehubd
+    volumes:
+      - demo-data:/demo
+      - sourcehub-data:/root/.sourcehub
+    command:
+      - start
+      - --rpc.laddr
+      - tcp://0.0.0.0:26657
+      - --log_level
+      - warn
+      - --minimum-gas-prices
+      - 0.0001stake
+    ports:
+      - "26657:26657"
+      - "26658:26658"
+      - "1317:1317"
+      - "4500:4500"
