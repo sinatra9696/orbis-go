@@ -350,12 +350,6 @@ func (d *dkg) Start(ctx context.Context) error {
 
 	log.Debug("Starting rabin DKG")
 
-	// connecting to peers (if possible)\
-	// for _, p := range d.participants {
-	// 	ctx, cancel := context.WithTimeout(ctx, peerConnectTimeout)
-	// 	_ = d.transport.Connect(ctx, p)
-	// 	cancel()
-	// }
 	d.connectToPeers(ctx)
 
 	log.Debug("Generating and persisting deals")
