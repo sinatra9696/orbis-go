@@ -21,12 +21,11 @@ import (
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	prototypes "github.com/cosmos/gogoproto/types"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/go-jose/go-jose/v3"
 	"github.com/go-jose/go-jose/v3/jwt"
-	ic "github.com/libp2p/go-libp2p/core/crypto"
 	"github.com/samber/do"
 	"go.dedis.ch/kyber/v3"
-	"go.dedis.ch/kyber/v3/suites"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -88,19 +87,6 @@ func (s *utilService) CreateBech32Address(ctx context.Context, req *utilityv1alp
 	return &utilityv1alpha1.CreateBech32AddressResponse{
 		Bech32Address: addr,
 	}, nil
-
-	/*
-		func (pubKey *PubKey) Address() crypto.Address {
-			if len(pubKey.Key) != PubKeySize {
-				panic("pubkey is incorrect size")
-			}
-			// For ADR-28 compatible address we would need to
-			// return address.Hash(proto.MessageName(pubKey), pubKey.Key)
-			return crypto.Address(tmhash.SumTruncated(pubKey.Key))
-		}
-
-		bech32.ConvertAndEncode(prefix, addr)
-	*/
 }
 
 func (s *utilService) CreateJWT(ctx context.Context, req *utilityv1alpha1.CreateJWTRequest) (*utilityv1alpha1.CreateJWTResponse, error) {
@@ -111,13 +97,24 @@ func (s *utilService) CreateJWT(ctx context.Context, req *utilityv1alpha1.Create
 		return nil, status.Errorf(codes.InvalidArgument, "unmarshal claims: %s", err)
 	}
 
-	privateKey := ed25519.PrivateKey(req.PrivateKey)
+	var privateKey any
+	var alg jose.SignatureAlgorithm
+	switch strings.ToLower(req.KeyType) {
+	case "ed25519":
+		privateKey = ed25519.PrivateKey(req.PrivateKey)
+		alg = jose.EdDSA
+	case "secp256k1":
+		privateKey = secp256k1.PrivKeyFromBytes(req.PrivateKey).ToECDSA()
+		alg = jose.ES256K
+	default:
+		return nil, status.Errorf(codes.InvalidArgument, "invalid key type '%s'", req.KeyType)
+	}
 
 	opts := new(jose.SignerOptions)
 	opts.WithHeader(jose.HeaderKey("kid"), req.Kid)
 	signer, err := jose.NewSigner(
 		jose.SigningKey{
-			Algorithm: jose.EdDSA,
+			Algorithm: alg,
 			Key:       privateKey,
 		},
 		opts,
@@ -140,7 +137,7 @@ func (s *utilService) CreateJWT(ctx context.Context, req *utilityv1alpha1.Create
 
 func (s *utilService) CreateKeypair(ctx context.Context, req *utilityv1alpha1.CreateKeypairRequest) (*utilityv1alpha1.CreateKeypairResponse, error) {
 
-	ste, err := suites.Find(req.KeyType)
+	ste, err := crypto.FindSuite(req.KeyType)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "unsupported key type: %s", err)
 	}
@@ -170,7 +167,7 @@ func (s *utilService) CreateKeypair(ctx context.Context, req *utilityv1alpha1.Cr
 
 func (s *utilService) EncryptSecret(ctx context.Context, req *utilityv1alpha1.EncryptSecretRequest) (*utilityv1alpha1.EncryptSecretResponse, error) {
 
-	ste, err := suites.Find(req.KeyType)
+	ste, err := crypto.FindSuite(req.KeyType)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "unsupported key type: %s", err)
 	}
@@ -207,7 +204,7 @@ func (s *utilService) EncryptSecret(ctx context.Context, req *utilityv1alpha1.En
 
 func (s *utilService) DecryptSecret(ctx context.Context, req *utilityv1alpha1.DecryptSecretRequest) (*utilityv1alpha1.DecryptSecretResponse, error) {
 
-	ste, err := suites.Find(req.KeyType)
+	ste, err := crypto.FindSuite(req.KeyType)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "unsupported key type: %s", err)
 	}
@@ -234,11 +231,7 @@ func (s *utilService) DecryptSecret(ctx context.Context, req *utilityv1alpha1.De
 		return nil, status.Errorf(codes.InvalidArgument, "unmarshal xncCmt: %s", err)
 	}
 
-	icRdrSk, err := ic.UnmarshalEd25519PrivateKey(req.RdrSk)
-	if err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "unmarshal rdrSk: %s", err)
-	}
-	sk, err := crypto.PrivateKeyFromLibP2P(icRdrSk)
+	sk, err := crypto.PrivateKeyFromBytes(req.KeyType, req.RdrSk)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "unmarshal rdrSk: %s", err)
 	}
@@ -285,6 +278,11 @@ func (s *utilService) AuthzRegisterObject(ctx context.Context, req *utilityv1alp
 		CreationTime: prototypes.TimestampNow(),
 	}
 
+	addr, err := cc.Account.Address("source")
+	if err != nil {
+		return nil, status.Error(codes.Internal, "invalid address")
+	}
+	fmt.Println("Fee Address", addr)
 	_, err = cc.BroadcastTx(ctx, cc.Account, registerMsg)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "broadcast tx: %s", err)

@@ -191,7 +191,7 @@ func (s *ringService) ReencryptSecret(ctx context.Context, req *ringv1alpha1.Ree
 	authInfo, err := r.Authn.VerifyRequestSubject(ctx, token)
 	if err != nil {
 		log.Error(err)
-		return nil, status.Error(codes.Unknown, "failed to verify token: %w")
+		return nil, status.Errorf(codes.Unknown, "failed to verify token: %s", err)
 	}
 
 	log.Infof("ReencryptSecret(): get secret: secretid=%s", req.SecretId)
