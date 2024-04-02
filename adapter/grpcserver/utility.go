@@ -18,8 +18,6 @@ import (
 
 	ssicrypto "github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did/key"
-	"github.com/cometbft/cometbft/crypto/tmhash"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	prototypes "github.com/cosmos/gogoproto/types"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/go-jose/go-jose/v3"
@@ -70,7 +68,7 @@ func (s *utilService) CreateDID(ctx context.Context, req *utilityv1alpha1.Create
 }
 
 func (s *utilService) CreateBech32Address(ctx context.Context, req *utilityv1alpha1.CreateBech32AddressRequest) (*utilityv1alpha1.CreateBech32AddressResponse, error) {
-	if req.PublicKey == nil {
+	if len(req.PublicKey) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "public key and key type are required")
 	}
 
@@ -78,8 +76,7 @@ func (s *utilService) CreateBech32Address(ctx context.Context, req *utilityv1alp
 		return nil, status.Error(codes.InvalidArgument, "bech32 prefix required")
 	}
 
-	buf := tmhash.SumTruncated(req.PublicKey)
-	addr, err := bech32.ConvertAndEncode(req.Prefix, buf)
+	addr, err := crypto.PubkeyBytesToBech32(req.PublicKey)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "bech32 encoding: %s", err)
 	}
@@ -278,12 +275,11 @@ func (s *utilService) AuthzRegisterObject(ctx context.Context, req *utilityv1alp
 		CreationTime: prototypes.TimestampNow(),
 	}
 
-	addr, err := cc.Account.Address("source")
+	acct, err := cc.AccountRegistry.GetByAddress(req.Creator)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "invalid address")
+		return nil, status.Errorf(codes.InvalidArgument, "couldn't get account for creator %s: %s", req.Creator, err)
 	}
-	fmt.Println("Fee Address", addr)
-	_, err = cc.BroadcastTx(ctx, cc.Account, registerMsg)
+	_, err = cc.BroadcastTx(ctx, acct, registerMsg)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "broadcast tx: %s", err)
 	}
