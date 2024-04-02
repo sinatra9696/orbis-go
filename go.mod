@@ -31,7 +31,7 @@ require (
 	github.com/samber/do v1.4.1
 	github.com/sourcenetwork/eventbus-go v0.0.0-20230729092422-b795b65d3523
 	github.com/sourcenetwork/go-libp2p-pubsub-rpc v0.0.0-20230209220544-e16d5e34c4fc
-	github.com/sourcenetwork/sourcehub v0.1.0
+	github.com/sourcenetwork/sourcehub v0.2.0
 	github.com/sourcenetwork/zanzi v0.2.1
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5

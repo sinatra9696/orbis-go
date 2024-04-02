@@ -1051,8 +1051,8 @@ github.com/sourcenetwork/kyber/v3 v3.1.1-0.20230726113421-a4ed13f7d481 h1:9Rb6z0
 github.com/sourcenetwork/kyber/v3 v3.1.1-0.20230726113421-a4ed13f7d481/go.mod h1:kXy7p3STAurkADD+/aZcsznZGKVHEqbtmdIzvPfrs1U=
 github.com/sourcenetwork/raccoondb v0.2.0 h1:lQ/r8IUm1IMaivXWhqndgpisLsI59c6M9jn6ujKYBzk=
 github.com/sourcenetwork/raccoondb v0.2.0/go.mod h1:A5ElVAhdf9yDjmpLrA3DLqYib09Fnuzm3sFUbY5r9BE=
-github.com/sourcenetwork/sourcehub v0.1.1-0.20240117195201-e28eb4200bb2 h1:z0h42hjkzd29iR+ejDzvFceUEwaaETa0xO+GMGn+1nw=
-github.com/sourcenetwork/sourcehub v0.1.1-0.20240117195201-e28eb4200bb2/go.mod h1:mv9e+yIduVE7tFovZF555/6iN97XbNDJ7IX72LMD8/c=
+github.com/sourcenetwork/sourcehub v0.2.0 h1:BjvdeYajsJYrJbiv4Ec/M1e+p4LXwwc6LHPlYZEUhpQ=
+github.com/sourcenetwork/sourcehub v0.2.0/go.mod h1:mv9e+yIduVE7tFovZF555/6iN97XbNDJ7IX72LMD8/c=
 github.com/sourcenetwork/zanzi v0.2.1-dev h1:LRhmdDM9pC4Fu6fxkVgRt2XNKGPvxZljmn5PE4GIlww=
 github.com/sourcenetwork/zanzi v0.2.1-dev/go.mod h1:53g7Efpb+qZ+YZ00Xann+YEcbFKOAxAgQOapm7YT1MY=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
