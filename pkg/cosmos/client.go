@@ -26,7 +26,6 @@ func New(ctx context.Context, cfg config.Cosmos) (*Client, error) {
 	}
 	client, err := cosmosclient.New(ctx, opts...)
 	if err != nil {
-		fmt.Printf("%T\n", err)
 		return nil, fmt.Errorf("new cosmos client: %w", err)
 	}
 
