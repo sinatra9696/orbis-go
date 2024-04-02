@@ -242,7 +242,6 @@ github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c h1:pFUpOrbxDR
 github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c/go.mod h1:6UhI8N9EjYm1c2odKpFpAYeR8dsBeM7PtzQhRgxRr9U=
 github.com/decred/dcrd/crypto/blake256 v1.0.1 h1:7PltbUIQB7u/FfZ39+DGa/ShuMyJ5ilcvdfma9wOH6Y=
 github.com/decred/dcrd/crypto/blake256 v1.0.1/go.mod h1:2OfgNZ5wDpcsFmHmCK5gZTPcCXqlm2ArzUIkw9czNJo=
-github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 h1:8UrgZ3GkP4i/CLijOJx79Yu+etlyjdBU4sfcs2WYQMs=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0/go.mod h1:v57UDF4pDQJcEfFUCRop3lJL149eHGSe9Jvczhzjo/0=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 h1:rpfIENRNNilwHwZeG5+P150SMrnNEcHYvcCuK6dPZSg=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0/go.mod h1:v57UDF4pDQJcEfFUCRop3lJL149eHGSe9Jvczhzjo/0=
@@ -701,8 +700,6 @@ github.com/libp2p/go-cidranger v1.1.0 h1:ewPN8EZ0dd1LSnrtuwd4709PXVcITVeuwbag38y
 github.com/libp2p/go-cidranger v1.1.0/go.mod h1:KWZTfSr+r9qEo9OkI9/SIEeAtw+NNoU0dXIXt15Okic=
 github.com/libp2p/go-flow-metrics v0.1.0 h1:0iPhMI8PskQwzh57jB9WxIuIOQ0r+15PChFGkx3Q3WM=
 github.com/libp2p/go-flow-metrics v0.1.0/go.mod h1:4Xi8MX8wj5aWNDAZttg6UPmc0ZrnFNsMtpsYUClFtro=
-github.com/libp2p/go-libp2p v0.32.1 h1:wy1J4kZIZxOaej6NveTWCZmHiJ/kY7GoAqXgqNCnPps=
-github.com/libp2p/go-libp2p v0.32.1/go.mod h1:hXXC3kXPlBZ1eu8Q2hptGrMB4mZ3048JUoS4EKaHW5c=
 github.com/libp2p/go-libp2p-asn-util v0.3.0 h1:gMDcMyYiZKkocGXDQ5nsUQyquC9+H+iLEQHwOCZ7s8s=
 github.com/libp2p/go-libp2p-asn-util v0.3.0/go.mod h1:B1mcOrKUE35Xq/ASTmQ4tN3LNzVVaMNmq2NACuqyB9w=
 github.com/libp2p/go-libp2p-kad-dht v0.25.1 h1:ofFNrf6MMEy4vi3R1VbJ7LOcTn3Csh0cDcaWHTxtWNA=
@@ -1044,8 +1041,10 @@ github.com/sourcenetwork/do v0.0.0-20231122053858-6de324bc957b h1:R78vbZVe+rY5KZ
 github.com/sourcenetwork/do v0.0.0-20231122053858-6de324bc957b/go.mod h1:/m5WO2uL9bxKzLekCFkr/VYAv9urXVUllBzdqpyXJ80=
 github.com/sourcenetwork/eventbus-go v0.0.0-20230729092422-b795b65d3523 h1:kmV4nlhB9wWNQmmA6F9l9PPGGPOJv8gLj3pYSVknTAk=
 github.com/sourcenetwork/eventbus-go v0.0.0-20230729092422-b795b65d3523/go.mod h1:rUPMRb3HndCroSLh0DANaqFXkeqHIc0v8sCNxmdhZ0g=
-github.com/sourcenetwork/go-jose/v3 v3.0.0-20240401195139-586e75818e17 h1:U4zI2y2QUYrQpfwP0oV33p0DtYeWu15etvoaux/Jvms=
-github.com/sourcenetwork/go-jose/v3 v3.0.0-20240401195139-586e75818e17/go.mod h1:Uh8MLjWP542w2wvA9BL4fRAXISCSmS6hrymlsdzOA58=
+github.com/sourcenetwork/go-jose/v3 v3.0.0-20240402195522-a4e0465c818a h1:sVskVdADFW7pJ9tI1zVJgK6zWljohaV/5RuEGQzW458=
+github.com/sourcenetwork/go-jose/v3 v3.0.0-20240402195522-a4e0465c818a/go.mod h1:Uh8MLjWP542w2wvA9BL4fRAXISCSmS6hrymlsdzOA58=
+github.com/sourcenetwork/go-libp2p v0.0.0-20240402195315-43e9687d78c3 h1:S1yeIMjTQC8fZEN0JdbEv4ZFk51Q+zmp9jRIGYOvnuo=
+github.com/sourcenetwork/go-libp2p v0.0.0-20240402195315-43e9687d78c3/go.mod h1:hXXC3kXPlBZ1eu8Q2hptGrMB4mZ3048JUoS4EKaHW5c=
 github.com/sourcenetwork/go-libp2p-pubsub-rpc v0.0.0-20230729092549-3be5c22247d3 h1:fsMqZ6lxR7yZFofzv0Hf3oPmJSfDaRisox4QsQ4WGSE=
 github.com/sourcenetwork/go-libp2p-pubsub-rpc v0.0.0-20230729092549-3be5c22247d3/go.mod h1:uLjOOOCxT73L/FlrqnRQdIbkfZ3uCX16GQja5fFcRdk=
 github.com/sourcenetwork/kyber/v3 v3.1.1-0.20230726113421-a4ed13f7d481 h1:9Rb6z0YJYwmY2a+ygrGD8qrS7JP38SEpzTZDzJ7wnPA=
@@ -1054,6 +1053,8 @@ github.com/sourcenetwork/raccoondb v0.2.0 h1:lQ/r8IUm1IMaivXWhqndgpisLsI59c6M9jn
 github.com/sourcenetwork/raccoondb v0.2.0/go.mod h1:A5ElVAhdf9yDjmpLrA3DLqYib09Fnuzm3sFUbY5r9BE=
 github.com/sourcenetwork/sourcehub v0.1.1-0.20240117195201-e28eb4200bb2 h1:z0h42hjkzd29iR+ejDzvFceUEwaaETa0xO+GMGn+1nw=
 github.com/sourcenetwork/sourcehub v0.1.1-0.20240117195201-e28eb4200bb2/go.mod h1:mv9e+yIduVE7tFovZF555/6iN97XbNDJ7IX72LMD8/c=
+github.com/sourcenetwork/zanzi v0.2.1-dev h1:LRhmdDM9pC4Fu6fxkVgRt2XNKGPvxZljmn5PE4GIlww=
+github.com/sourcenetwork/zanzi v0.2.1-dev/go.mod h1:53g7Efpb+qZ+YZ00Xann+YEcbFKOAxAgQOapm7YT1MY=
 github.com/spaolacci/murmur3 v0.0.0-20180118202830-f09979ecbc72/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
 github.com/spaolacci/murmur3 v1.1.0 h1:7c1g84S4BPRrfL5Xrdp6fOJ206sU9y293DDHaoy0bLI=
 github.com/spaolacci/murmur3 v1.1.0/go.mod h1:JwIasOWyU6f++ZhiEuf87xNszmSA2myDM2Kzu9HwQUA=
