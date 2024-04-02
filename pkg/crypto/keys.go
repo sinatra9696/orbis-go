@@ -4,17 +4,21 @@ import (
 	gocrypto "crypto"
 	"crypto/ecdsa"
 	"crypto/ed25519"
+	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
 	"io"
 	"strings"
 
+	cometcrypto "github.com/cometbft/cometbft/crypto"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	ic "github.com/libp2p/go-libp2p/core/crypto"
 	icpb "github.com/libp2p/go-libp2p/core/crypto/pb"
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/share"
 	"go.dedis.ch/kyber/v3/suites"
+	"golang.org/x/crypto/ripemd160"
 )
 
 type KeyType = icpb.KeyType
@@ -323,4 +327,15 @@ type DistKeyShare struct {
 // PubPoly
 type PubPoly struct {
 	*share.PubPoly
+}
+
+func PubkeyBytesToBech32(pubkey []byte) (string, error) {
+	// convert to address
+	sha := sha256.Sum256(pubkey)
+	hasherRIPEMD160 := ripemd160.New()
+	hasherRIPEMD160.Write(sha[:]) // does not error
+	buf := cometcrypto.Address(hasherRIPEMD160.Sum(nil))
+	addr := sdk.AccAddress(buf)
+	// convert to bech32 (stringified address)
+	return addr.String(), nil
 }
