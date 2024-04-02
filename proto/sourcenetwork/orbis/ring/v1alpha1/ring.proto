@@ -181,6 +181,7 @@ message Manifest {
   repeated Node nodes = 8;
   string authorization = 9;
   string authentication = 10;
+  int32 nonce = 11;
 }
 
 message Node {
