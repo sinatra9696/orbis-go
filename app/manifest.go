@@ -22,6 +22,7 @@ type manifest struct {
 	Bulletin  string `json:"bulletin"`
 	Transport string `json:"transport"`
 	Nodes     []node `json:"nodes"`
+	Nonce     int32  `json:"nonce"`
 
 	Authorization  string `json:"authorization"`
 	Authentication string `json:"authentication"`
@@ -43,6 +44,7 @@ func ringID(r *ringv1alpha1.Manifest) types.RingID {
 		Bulletin:       r.Bulletin,
 		Transport:      r.Transport,
 		Nodes:          make([]node, len(r.Nodes)),
+		Nonce:          r.Nonce,
 		Authorization:  r.Authorization,
 		Authentication: r.Authentication,
 	}
