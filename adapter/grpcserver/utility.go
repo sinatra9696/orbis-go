@@ -18,7 +18,6 @@ import (
 
 	ssicrypto "github.com/TBD54566975/ssi-sdk/crypto"
 	"github.com/TBD54566975/ssi-sdk/did/key"
-	prototypes "github.com/cosmos/gogoproto/types"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 	"github.com/go-jose/go-jose/v3"
 	"github.com/go-jose/go-jose/v3/jwt"
@@ -76,7 +75,7 @@ func (s *utilService) CreateBech32Address(ctx context.Context, req *utilityv1alp
 		return nil, status.Error(codes.InvalidArgument, "bech32 prefix required")
 	}
 
-	addr, err := crypto.PubkeyBytesToBech32(req.PublicKey)
+	addr, err := crypto.PublicKeyBytesToBech32(req.PublicKey)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "bech32 encoding: %s", err)
 	}
@@ -246,7 +245,46 @@ func (s *utilService) DecryptSecret(ctx context.Context, req *utilityv1alpha1.De
 	return resp, nil
 }
 
-func (s *utilService) AuthzRegisterObject(ctx context.Context, req *utilityv1alpha1.AuthzRegisterObjectRequest) (*utilityv1alpha1.AuthzRegisterObjectResponse, error) {
+func (s *utilService) ACPCreatePolicy(ctx context.Context, req *utilityv1alpha1.ACPCreatePolicyRequest) (*utilityv1alpha1.ACPCreatePolicyResponse, error) {
+	cc, err := do.Invoke[*cosmos.Client](s.app.Injector())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "missing cosmos client")
+	}
+
+	if req.PolicyYaml == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "missing policy ID")
+	}
+	if req.Creator == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "missing creator")
+	}
+
+	msgCreatePolicy := types.NewMsgCreatePolicyNow(req.Creator, req.PolicyYaml, types.PolicyMarshalingType_SHORT_YAML)
+	acct, err := cc.AccountRegistry.GetByAddress(req.Creator)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "couldn't get account for creator %s: %s", req.Creator, err)
+	}
+	resp, err := cc.BroadcastTx(ctx, acct, msgCreatePolicy)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "broadcast tx: %s", err)
+	}
+
+	policyID := ""
+	for _, evt := range resp.Events {
+		if evt.Type == "sourcehub.acp.EventPolicyCreated" {
+			for _, attr := range evt.Attributes {
+				if attr.Key == "policy_id" {
+					policyID = strings.ReplaceAll(attr.Value, "\"", "")
+				}
+			}
+		}
+	}
+
+	return &utilityv1alpha1.ACPCreatePolicyResponse{
+		PolicyId: policyID,
+	}, nil
+}
+
+func (s *utilService) ACPRegisterObject(ctx context.Context, req *utilityv1alpha1.ACPRegisterObjectRequest) (*utilityv1alpha1.ACPRegisterObjectResponse, error) {
 	cc, err := do.Invoke[*cosmos.Client](s.app.Injector())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "missing cosmos client")
@@ -265,15 +303,20 @@ func (s *utilService) AuthzRegisterObject(ctx context.Context, req *utilityv1alp
 		return nil, status.Errorf(codes.InvalidArgument, "missing creator")
 	}
 
-	registerMsg := &types.MsgRegisterObject{
-		Creator:  req.Creator,
-		PolicyId: req.PolicyId,
-		Object: &types.Object{
-			Resource: req.ObjectResource,
-			Id:       req.ObjectId,
-		},
-		CreationTime: prototypes.TimestampNow(),
+	obj := &types.Object{
+		Resource: req.ObjectResource,
+		Id:       req.ObjectId,
 	}
+	registerMsg := types.NewMsgRegisterObjectNow(req.Creator, req.PolicyId, obj)
+	// registerMsg := &types.MsgRegisterObject{
+	// 	Creator:  req.Creator,
+	// 	PolicyId: req.PolicyId,
+	// 	Object: &types.Object{
+	// 		Resource: req.ObjectResource,
+	// 		Id:       req.ObjectId,
+	// 	},
+	// 	CreationTime: prototypes.TimestampNow(),
+	// }
 
 	acct, err := cc.AccountRegistry.GetByAddress(req.Creator)
 	if err != nil {
@@ -284,10 +327,10 @@ func (s *utilService) AuthzRegisterObject(ctx context.Context, req *utilityv1alp
 		return nil, status.Errorf(codes.Internal, "broadcast tx: %s", err)
 	}
 
-	return nil, nil
+	return &utilityv1alpha1.ACPRegisterObjectResponse{}, nil
 }
 
-func (s *utilService) AuthzSetRelationship(ctx context.Context, req *utilityv1alpha1.AuthzSetRelationshipRequest) (*utilityv1alpha1.AuthzSetRelationshipResponse, error) {
+func (s *utilService) ACPSetRelationship(ctx context.Context, req *utilityv1alpha1.ACPSetRelationshipRequest) (*utilityv1alpha1.ACPSetRelationshipResponse, error) {
 	cc, err := do.Invoke[*cosmos.Client](s.app.Injector())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "missing cosmos client")
@@ -318,12 +361,17 @@ func (s *utilService) AuthzSetRelationship(ctx context.Context, req *utilityv1al
 		req.PolicyId,
 		relationship,
 	)
-	_, err = cc.BroadcastTx(ctx, cc.Account, setRelmsg)
+
+	acct, err := cc.AccountRegistry.GetByAddress(req.Creator)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "couldn't get account for creator %s: %s", req.Creator, err)
+	}
+	_, err = cc.BroadcastTx(ctx, acct, setRelmsg)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "broadcast tx: %s", err)
 	}
 
-	return nil, nil
+	return &utilityv1alpha1.ACPSetRelationshipResponse{}, nil
 }
 
 func kyberSuiteToSSIKeyType(kt string) (ssicrypto.KeyType, error) {

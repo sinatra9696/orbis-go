@@ -329,7 +329,15 @@ type PubPoly struct {
 	*share.PubPoly
 }
 
-func PubkeyBytesToBech32(pubkey []byte) (string, error) {
+func PublicKeyToBech32(pubkey PublicKey) (string, error) {
+	buf, err := pubkey.Raw()
+	if err != nil {
+		return "", fmt.Errorf("getting public key bytes: %w", err)
+	}
+	return PublicKeyBytesToBech32(buf)
+}
+
+func PublicKeyBytesToBech32(pubkey []byte) (string, error) {
 	// convert to address
 	sha := sha256.Sum256(pubkey)
 	hasherRIPEMD160 := ripemd160.New()

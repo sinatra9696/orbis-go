@@ -132,7 +132,7 @@ func (c credentialSrv) VerifyRequestSubject(ctx context.Context, token []byte) (
 			return authn.SubjectInfo{}, fmt.Errorf("bech32 verification missing prefix")
 		}
 		// verify bech32 address
-		addr, err := publicKeyToBech32(c.addressPrefix, userInfo.PubKey)
+		addr, err := crypto.PublicKeyToBech32(userInfo.PubKey)
 		if err != nil {
 			return authn.SubjectInfo{}, fmt.Errorf("JWS subject bech32 verification failed: %w", err)
 		}
