@@ -19,14 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	UtilityService_CreateDID_FullMethodName            = "/orbis.utility.v1alpha1.UtilityService/CreateDID"
-	UtilityService_CreateBech32Address_FullMethodName  = "/orbis.utility.v1alpha1.UtilityService/CreateBech32Address"
-	UtilityService_CreateJWT_FullMethodName            = "/orbis.utility.v1alpha1.UtilityService/CreateJWT"
-	UtilityService_CreateKeypair_FullMethodName        = "/orbis.utility.v1alpha1.UtilityService/CreateKeypair"
-	UtilityService_EncryptSecret_FullMethodName        = "/orbis.utility.v1alpha1.UtilityService/EncryptSecret"
-	UtilityService_DecryptSecret_FullMethodName        = "/orbis.utility.v1alpha1.UtilityService/DecryptSecret"
-	UtilityService_AuthzRegisterObject_FullMethodName  = "/orbis.utility.v1alpha1.UtilityService/AuthzRegisterObject"
-	UtilityService_AuthzSetRelationship_FullMethodName = "/orbis.utility.v1alpha1.UtilityService/AuthzSetRelationship"
+	UtilityService_CreateDID_FullMethodName           = "/orbis.utility.v1alpha1.UtilityService/CreateDID"
+	UtilityService_CreateBech32Address_FullMethodName = "/orbis.utility.v1alpha1.UtilityService/CreateBech32Address"
+	UtilityService_CreateJWT_FullMethodName           = "/orbis.utility.v1alpha1.UtilityService/CreateJWT"
+	UtilityService_CreateKeypair_FullMethodName       = "/orbis.utility.v1alpha1.UtilityService/CreateKeypair"
+	UtilityService_EncryptSecret_FullMethodName       = "/orbis.utility.v1alpha1.UtilityService/EncryptSecret"
+	UtilityService_DecryptSecret_FullMethodName       = "/orbis.utility.v1alpha1.UtilityService/DecryptSecret"
+	UtilityService_ACPCreatePolicy_FullMethodName     = "/orbis.utility.v1alpha1.UtilityService/ACPCreatePolicy"
+	UtilityService_ACPRegisterObject_FullMethodName   = "/orbis.utility.v1alpha1.UtilityService/ACPRegisterObject"
+	UtilityService_ACPSetRelationship_FullMethodName  = "/orbis.utility.v1alpha1.UtilityService/ACPSetRelationship"
 )
 
 // UtilityServiceClient is the client API for UtilityService service.
@@ -39,8 +40,9 @@ type UtilityServiceClient interface {
 	CreateKeypair(ctx context.Context, in *CreateKeypairRequest, opts ...grpc.CallOption) (*CreateKeypairResponse, error)
 	EncryptSecret(ctx context.Context, in *EncryptSecretRequest, opts ...grpc.CallOption) (*EncryptSecretResponse, error)
 	DecryptSecret(ctx context.Context, in *DecryptSecretRequest, opts ...grpc.CallOption) (*DecryptSecretResponse, error)
-	AuthzRegisterObject(ctx context.Context, in *AuthzRegisterObjectRequest, opts ...grpc.CallOption) (*AuthzRegisterObjectResponse, error)
-	AuthzSetRelationship(ctx context.Context, in *AuthzSetRelationshipRequest, opts ...grpc.CallOption) (*AuthzSetRelationshipResponse, error)
+	ACPCreatePolicy(ctx context.Context, in *ACPCreatePolicyRequest, opts ...grpc.CallOption) (*ACPCreatePolicyResponse, error)
+	ACPRegisterObject(ctx context.Context, in *ACPRegisterObjectRequest, opts ...grpc.CallOption) (*ACPRegisterObjectResponse, error)
+	ACPSetRelationship(ctx context.Context, in *ACPSetRelationshipRequest, opts ...grpc.CallOption) (*ACPSetRelationshipResponse, error)
 }
 
 type utilityServiceClient struct {
@@ -105,18 +107,27 @@ func (c *utilityServiceClient) DecryptSecret(ctx context.Context, in *DecryptSec
 	return out, nil
 }
 
-func (c *utilityServiceClient) AuthzRegisterObject(ctx context.Context, in *AuthzRegisterObjectRequest, opts ...grpc.CallOption) (*AuthzRegisterObjectResponse, error) {
-	out := new(AuthzRegisterObjectResponse)
-	err := c.cc.Invoke(ctx, UtilityService_AuthzRegisterObject_FullMethodName, in, out, opts...)
+func (c *utilityServiceClient) ACPCreatePolicy(ctx context.Context, in *ACPCreatePolicyRequest, opts ...grpc.CallOption) (*ACPCreatePolicyResponse, error) {
+	out := new(ACPCreatePolicyResponse)
+	err := c.cc.Invoke(ctx, UtilityService_ACPCreatePolicy_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *utilityServiceClient) AuthzSetRelationship(ctx context.Context, in *AuthzSetRelationshipRequest, opts ...grpc.CallOption) (*AuthzSetRelationshipResponse, error) {
-	out := new(AuthzSetRelationshipResponse)
-	err := c.cc.Invoke(ctx, UtilityService_AuthzSetRelationship_FullMethodName, in, out, opts...)
+func (c *utilityServiceClient) ACPRegisterObject(ctx context.Context, in *ACPRegisterObjectRequest, opts ...grpc.CallOption) (*ACPRegisterObjectResponse, error) {
+	out := new(ACPRegisterObjectResponse)
+	err := c.cc.Invoke(ctx, UtilityService_ACPRegisterObject_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *utilityServiceClient) ACPSetRelationship(ctx context.Context, in *ACPSetRelationshipRequest, opts ...grpc.CallOption) (*ACPSetRelationshipResponse, error) {
+	out := new(ACPSetRelationshipResponse)
+	err := c.cc.Invoke(ctx, UtilityService_ACPSetRelationship_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -133,8 +144,9 @@ type UtilityServiceServer interface {
 	CreateKeypair(context.Context, *CreateKeypairRequest) (*CreateKeypairResponse, error)
 	EncryptSecret(context.Context, *EncryptSecretRequest) (*EncryptSecretResponse, error)
 	DecryptSecret(context.Context, *DecryptSecretRequest) (*DecryptSecretResponse, error)
-	AuthzRegisterObject(context.Context, *AuthzRegisterObjectRequest) (*AuthzRegisterObjectResponse, error)
-	AuthzSetRelationship(context.Context, *AuthzSetRelationshipRequest) (*AuthzSetRelationshipResponse, error)
+	ACPCreatePolicy(context.Context, *ACPCreatePolicyRequest) (*ACPCreatePolicyResponse, error)
+	ACPRegisterObject(context.Context, *ACPRegisterObjectRequest) (*ACPRegisterObjectResponse, error)
+	ACPSetRelationship(context.Context, *ACPSetRelationshipRequest) (*ACPSetRelationshipResponse, error)
 	mustEmbedUnimplementedUtilityServiceServer()
 }
 
@@ -160,11 +172,14 @@ func (UnimplementedUtilityServiceServer) EncryptSecret(context.Context, *Encrypt
 func (UnimplementedUtilityServiceServer) DecryptSecret(context.Context, *DecryptSecretRequest) (*DecryptSecretResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DecryptSecret not implemented")
 }
-func (UnimplementedUtilityServiceServer) AuthzRegisterObject(context.Context, *AuthzRegisterObjectRequest) (*AuthzRegisterObjectResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AuthzRegisterObject not implemented")
+func (UnimplementedUtilityServiceServer) ACPCreatePolicy(context.Context, *ACPCreatePolicyRequest) (*ACPCreatePolicyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ACPCreatePolicy not implemented")
 }
-func (UnimplementedUtilityServiceServer) AuthzSetRelationship(context.Context, *AuthzSetRelationshipRequest) (*AuthzSetRelationshipResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AuthzSetRelationship not implemented")
+func (UnimplementedUtilityServiceServer) ACPRegisterObject(context.Context, *ACPRegisterObjectRequest) (*ACPRegisterObjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ACPRegisterObject not implemented")
+}
+func (UnimplementedUtilityServiceServer) ACPSetRelationship(context.Context, *ACPSetRelationshipRequest) (*ACPSetRelationshipResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ACPSetRelationship not implemented")
 }
 func (UnimplementedUtilityServiceServer) mustEmbedUnimplementedUtilityServiceServer() {}
 
@@ -287,38 +302,56 @@ func _UtilityService_DecryptSecret_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UtilityService_AuthzRegisterObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthzRegisterObjectRequest)
+func _UtilityService_ACPCreatePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ACPCreatePolicyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UtilityServiceServer).AuthzRegisterObject(ctx, in)
+		return srv.(UtilityServiceServer).ACPCreatePolicy(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UtilityService_AuthzRegisterObject_FullMethodName,
+		FullMethod: UtilityService_ACPCreatePolicy_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UtilityServiceServer).AuthzRegisterObject(ctx, req.(*AuthzRegisterObjectRequest))
+		return srv.(UtilityServiceServer).ACPCreatePolicy(ctx, req.(*ACPCreatePolicyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UtilityService_AuthzSetRelationship_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthzSetRelationshipRequest)
+func _UtilityService_ACPRegisterObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ACPRegisterObjectRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UtilityServiceServer).AuthzSetRelationship(ctx, in)
+		return srv.(UtilityServiceServer).ACPRegisterObject(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UtilityService_AuthzSetRelationship_FullMethodName,
+		FullMethod: UtilityService_ACPRegisterObject_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UtilityServiceServer).AuthzSetRelationship(ctx, req.(*AuthzSetRelationshipRequest))
+		return srv.(UtilityServiceServer).ACPRegisterObject(ctx, req.(*ACPRegisterObjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UtilityService_ACPSetRelationship_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ACPSetRelationshipRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UtilityServiceServer).ACPSetRelationship(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UtilityService_ACPSetRelationship_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UtilityServiceServer).ACPSetRelationship(ctx, req.(*ACPSetRelationshipRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -355,12 +388,16 @@ var UtilityService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UtilityService_DecryptSecret_Handler,
 		},
 		{
-			MethodName: "AuthzRegisterObject",
-			Handler:    _UtilityService_AuthzRegisterObject_Handler,
+			MethodName: "ACPCreatePolicy",
+			Handler:    _UtilityService_ACPCreatePolicy_Handler,
 		},
 		{
-			MethodName: "AuthzSetRelationship",
-			Handler:    _UtilityService_AuthzSetRelationship_Handler,
+			MethodName: "ACPRegisterObject",
+			Handler:    _UtilityService_ACPRegisterObject_Handler,
+		},
+		{
+			MethodName: "ACPSetRelationship",
+			Handler:    _UtilityService_ACPSetRelationship_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

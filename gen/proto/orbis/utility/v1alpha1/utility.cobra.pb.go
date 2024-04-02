@@ -26,8 +26,9 @@ func UtilityServiceClientCommand(options ...client.Option) *cobra.Command {
 		_UtilityServiceCreateKeypairCommand(cfg),
 		_UtilityServiceEncryptSecretCommand(cfg),
 		_UtilityServiceDecryptSecretCommand(cfg),
-		_UtilityServiceAuthzRegisterObjectCommand(cfg),
-		_UtilityServiceAuthzSetRelationshipCommand(cfg),
+		_UtilityServiceACPCreatePolicyCommand(cfg),
+		_UtilityServiceACPRegisterObjectCommand(cfg),
+		_UtilityServiceACPSetRelationshipCommand(cfg),
 	)
 	return cmd
 }
@@ -296,32 +297,75 @@ func _UtilityServiceDecryptSecretCommand(cfg *client.Config) *cobra.Command {
 	return cmd
 }
 
-func _UtilityServiceAuthzRegisterObjectCommand(cfg *client.Config) *cobra.Command {
-	req := &AuthzRegisterObjectRequest{}
+func _UtilityServiceACPCreatePolicyCommand(cfg *client.Config) *cobra.Command {
+	req := &ACPCreatePolicyRequest{}
 
 	cmd := &cobra.Command{
-		Use:   cfg.CommandNamer("AuthzRegisterObject"),
-		Short: "AuthzRegisterObject RPC client",
+		Use:   cfg.CommandNamer("ACPCreatePolicy"),
+		Short: "ACPCreatePolicy RPC client",
 		Long:  "",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if cfg.UseEnvVars {
 				if err := flag.SetFlagsFromEnv(cmd.Parent().PersistentFlags(), true, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService"); err != nil {
 					return err
 				}
-				if err := flag.SetFlagsFromEnv(cmd.PersistentFlags(), false, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService", "AuthzRegisterObject"); err != nil {
+				if err := flag.SetFlagsFromEnv(cmd.PersistentFlags(), false, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService", "ACPCreatePolicy"); err != nil {
 					return err
 				}
 			}
 			return client.RoundTrip(cmd.Context(), cfg, func(cc grpc.ClientConnInterface, in iocodec.Decoder, out iocodec.Encoder) error {
 				cli := NewUtilityServiceClient(cc)
-				v := &AuthzRegisterObjectRequest{}
+				v := &ACPCreatePolicyRequest{}
 
 				if err := in(v); err != nil {
 					return err
 				}
 				proto.Merge(v, req)
 
-				res, err := cli.AuthzRegisterObject(cmd.Context(), v)
+				res, err := cli.ACPCreatePolicy(cmd.Context(), v)
+
+				if err != nil {
+					return err
+				}
+
+				return out(res)
+
+			})
+		},
+	}
+
+	cmd.PersistentFlags().StringVar(&req.Creator, cfg.FlagNamer("Creator"), "", "")
+	cmd.PersistentFlags().StringVar(&req.PolicyYaml, cfg.FlagNamer("PolicyYaml"), "", "")
+
+	return cmd
+}
+
+func _UtilityServiceACPRegisterObjectCommand(cfg *client.Config) *cobra.Command {
+	req := &ACPRegisterObjectRequest{}
+
+	cmd := &cobra.Command{
+		Use:   cfg.CommandNamer("ACPRegisterObject"),
+		Short: "ACPRegisterObject RPC client",
+		Long:  "",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if cfg.UseEnvVars {
+				if err := flag.SetFlagsFromEnv(cmd.Parent().PersistentFlags(), true, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService"); err != nil {
+					return err
+				}
+				if err := flag.SetFlagsFromEnv(cmd.PersistentFlags(), false, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService", "ACPRegisterObject"); err != nil {
+					return err
+				}
+			}
+			return client.RoundTrip(cmd.Context(), cfg, func(cc grpc.ClientConnInterface, in iocodec.Decoder, out iocodec.Encoder) error {
+				cli := NewUtilityServiceClient(cc)
+				v := &ACPRegisterObjectRequest{}
+
+				if err := in(v); err != nil {
+					return err
+				}
+				proto.Merge(v, req)
+
+				res, err := cli.ACPRegisterObject(cmd.Context(), v)
 
 				if err != nil {
 					return err
@@ -341,32 +385,32 @@ func _UtilityServiceAuthzRegisterObjectCommand(cfg *client.Config) *cobra.Comman
 	return cmd
 }
 
-func _UtilityServiceAuthzSetRelationshipCommand(cfg *client.Config) *cobra.Command {
-	req := &AuthzSetRelationshipRequest{}
+func _UtilityServiceACPSetRelationshipCommand(cfg *client.Config) *cobra.Command {
+	req := &ACPSetRelationshipRequest{}
 
 	cmd := &cobra.Command{
-		Use:   cfg.CommandNamer("AuthzSetRelationship"),
-		Short: "AuthzSetRelationship RPC client",
+		Use:   cfg.CommandNamer("ACPSetRelationship"),
+		Short: "ACPSetRelationship RPC client",
 		Long:  "",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if cfg.UseEnvVars {
 				if err := flag.SetFlagsFromEnv(cmd.Parent().PersistentFlags(), true, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService"); err != nil {
 					return err
 				}
-				if err := flag.SetFlagsFromEnv(cmd.PersistentFlags(), false, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService", "AuthzSetRelationship"); err != nil {
+				if err := flag.SetFlagsFromEnv(cmd.PersistentFlags(), false, cfg.EnvVarNamer, cfg.EnvVarPrefix, "UtilityService", "ACPSetRelationship"); err != nil {
 					return err
 				}
 			}
 			return client.RoundTrip(cmd.Context(), cfg, func(cc grpc.ClientConnInterface, in iocodec.Decoder, out iocodec.Encoder) error {
 				cli := NewUtilityServiceClient(cc)
-				v := &AuthzSetRelationshipRequest{}
+				v := &ACPSetRelationshipRequest{}
 
 				if err := in(v); err != nil {
 					return err
 				}
 				proto.Merge(v, req)
 
-				res, err := cli.AuthzSetRelationship(cmd.Context(), v)
+				res, err := cli.ACPSetRelationship(cmd.Context(), v)
 
 				if err != nil {
 					return err
