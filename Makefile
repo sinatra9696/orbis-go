@@ -1,5 +1,9 @@
-build:
+docker:
 	KO_DOCKER_REPO=ko.local ko build -B --platform=linux/$$(go env GOARCH) ./cmd/orbisd
+
+.PHONY: build
+build:
+	go build -o build/orbisd ./cmd/orbisd 
 
 run:
 	docker-compose -f demo/compose.yaml down -v
