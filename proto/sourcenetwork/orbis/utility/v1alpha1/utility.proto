@@ -47,16 +47,23 @@ service UtilityService {
     };
   }
 
-  rpc AuthzRegisterObject(AuthzRegisterObjectRequest) returns (AuthzRegisterObjectResponse) {
+  rpc ACPCreatePolicy(ACPCreatePolicyRequest) returns (ACPCreatePolicyResponse) {
     option (google.api.http) = {
-      post: "/v1alpha1/utility/authz:registerobject"
+      post: "/v1alpha1/utility/acp:createpolicy"
       body: "*"
     };
   }
 
-  rpc AuthzSetRelationship(AuthzSetRelationshipRequest) returns (AuthzSetRelationshipResponse) {
+  rpc ACPRegisterObject(ACPRegisterObjectRequest) returns (ACPRegisterObjectResponse) {
     option (google.api.http) = {
-      post: "/v1alpha1/utility/authz:setrelationship"
+      post: "/v1alpha1/utility/acp:registerobject"
+      body: "*"
+    };
+  }
+
+  rpc ACPSetRelationship(ACPSetRelationshipRequest) returns (ACPSetRelationshipResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha1/utility/acp:setrelationship"
       body: "*"
     };
   }
@@ -75,18 +82,27 @@ enum RegistrationResult {
   Unarchived = 2;
 }
 
-message AuthzRegisterObjectRequest {
+message ACPCreatePolicyRequest {
+  string creator = 1;
+  string policy_yaml = 2;
+}
+
+message ACPCreatePolicyResponse {
+  string policy_id = 1;
+}
+
+message ACPRegisterObjectRequest {
   string policy_id = 1;
   string creator = 2;
   string object_resource = 3;
   string object_id = 4;
 }
 
-message AuthzRegisterObjectResponse {
+message ACPRegisterObjectResponse {
   RegistrationResult result = 1;
 }
 
-message AuthzSetRelationshipRequest {
+message ACPSetRelationshipRequest {
   string actor = 1;
   string policy_id = 2;
   string object_resource = 3;
@@ -95,7 +111,7 @@ message AuthzSetRelationshipRequest {
   string creator = 7;
 }
 
-message AuthzSetRelationshipResponse {
+message ACPSetRelationshipResponse {
   RegistrationResult result = 1;
 }
 
