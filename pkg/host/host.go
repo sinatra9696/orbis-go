@@ -57,6 +57,7 @@ func New(ctx context.Context, cfg config.Host) (*Host, error) {
 
 	randomness := rand.Reader
 	if seed := cfg.Crypto.Seed; seed != 0 {
+		log.Warn("USING MANUAL SEED - !! WARNING !! INSECURE: ", seed)
 		randomness = mrand.New(mrand.NewSource(int64(seed)))
 	}
 
