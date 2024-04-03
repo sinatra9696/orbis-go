@@ -15,7 +15,12 @@ sourcehubd keys add ${VALIDATOR3} --keyring-backend test
 
 # Static keys for testing
 # Alice Address source16dgy2uw5p74a0pzuwmq0hpl44xzn2yfauxfc70
+# private Key: puNSnlhhQVzhxcST+EjI+kln+tKIh0tRct29BY9mgQ4=
+# public Key: Ay181c7HWcRib08KMzYNRLqN3kwTFhsfSScAScSX6uDs
+
 # Bob Address source1c30ctscyfhudwpaw3jdfjnc6vhzeqygjwt39zy
+# private Key: U7UHuJYs+xF7fACCsKrthBb6nMQ0MA+IpRiD2Xza78o=
+# public Key: ArndsH/I2tiTRAgvhT8yU5YMwpZnt3EKy6VtIdF8nXqJ
 cat /demo/alice.seed | sourcehubd keys add ${ALICE} --recover --keyring-backend test
 cat /demo/bob.seed | sourcehubd keys add ${BOB} --recover --keyring-backend test
 

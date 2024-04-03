@@ -26,17 +26,6 @@ x-orbisd: &orbisd
     - "host.docker.internal:host-gateway"
 
 services:
-  zanzid:
-    tty: true
-    stdin_open: true
-    image: ko.local/zanzid
-    volumes:
-      - demo-data:/demo
-    command: []
-    ports:
-      - "8080:8080"
-      - "8090:8090"
-
   orbisd1:
     <<: *orbisd
     depends_on:

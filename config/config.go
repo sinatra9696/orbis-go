@@ -40,6 +40,7 @@ type GRPC struct {
 	GRPCURL string `default:"127.0.0.1:8080" description:"gRPC URL"`
 	RESTURL string `default:"127.0.0.1:8090" description:"REST URL"`
 	Logging bool   `default:"false" description:"debug mode"`
+	Utility bool   `default:"false" description:"Enable the utility service (demo and test ONLY)"`
 }
 
 type DKG struct {

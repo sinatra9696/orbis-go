@@ -30,9 +30,12 @@ func NewGRPCServer(cfg config.GRPC, a *app.App) *grpc.Server {
 	s := grpc.NewServer(opts...)
 
 	// Setup orbis service handlers to the server.
-	utilityv1alpha1.RegisterUtilityServiceServer(s, newUtilService(a))
 	transportv1alpha1.RegisterTransportServiceServer(s, newTransportService(a))
 	ringv1alpha1.RegisterRingServiceServer(s, newRingService(a))
+
+	if cfg.Utility {
+		utilityv1alpha1.RegisterUtilityServiceServer(s, newUtilService(a))
+	}
 
 	return s
 }

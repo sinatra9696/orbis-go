@@ -2,6 +2,7 @@ grpc:
   grpcURL: "0.0.0.0:8082"
   restURL: "0.0.0.0:8092"
   logging: true
+  utility: true
 
 logger:
   level: "debug"

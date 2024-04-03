@@ -2,6 +2,7 @@ grpc:
   grpcURL: "0.0.0.0:8082"
   restURL: "0.0.0.0:8092"
   logging: true
+  utility: true
 
 logger:
   level: "debug"
@@ -16,11 +17,6 @@ host:
     - /ip4/0.0.0.0/tcp/9002
   bootstrap_peers:
     - /dns4/orbisd1/tcp/9001/p2p/16Uiu2HAm35sSr96x1TJHBTkWdcDH9P8twhTw92iDyq38XvyGzgZN
-
-bulletin:
-  p2p:
-    rendezvous: "orbis-bulletin"
-    persistentPeers: "/dns4/orbisd1/tcp/9001/p2p/16Uiu2HAm35sSr96x1TJHBTkWdcDH9P8twhTw92iDyq38XvyGzgZN"
 
 transport:
   rendezvous: "orbis-transport"

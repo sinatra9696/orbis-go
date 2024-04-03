@@ -2,6 +2,7 @@ grpc:
   grpcURL: "0.0.0.0:8081"
   restURL: "0.0.0.0:8091"
   logging: true
+  utility: true
 
 logger:
   level: "debug"
@@ -14,10 +15,6 @@ host:
     type: secp256k1
   listenAddresses:
     - /ip4/0.0.0.0/tcp/9001
-
-bulletin:
-  p2p:
-    rendezvous: "orbis-bulletin"
 
 transport:
   rendezvous: "orbis-transport"
