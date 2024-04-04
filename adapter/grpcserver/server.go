@@ -70,9 +70,11 @@ func NewGRPCGatewayServer(cfg config.GRPC) (*http.Server, error) {
 		return nil, fmt.Errorf("register transport service handler, %w", err)
 	}
 
-	err = utilityv1alpha1.RegisterUtilityServiceHandler(ctx, mux, conn)
-	if err != nil {
-		return nil, fmt.Errorf("register utility service handler, %w", err)
+	if cfg.Utility {
+		err = utilityv1alpha1.RegisterUtilityServiceHandler(ctx, mux, conn)
+		if err != nil {
+			return nil, fmt.Errorf("register utility service handler, %w", err)
+		}
 	}
 
 	// Register Orbis Services.
@@ -86,9 +88,11 @@ func NewGRPCGatewayServer(cfg config.GRPC) (*http.Server, error) {
 		return nil, fmt.Errorf("register transport service handler from endpoint, %w", err)
 	}
 
-	err = utilityv1alpha1.RegisterUtilityServiceHandlerFromEndpoint(ctx, mux, cfg.GRPCURL, opts)
-	if err != nil {
-		return nil, fmt.Errorf("register utility service handler from endpoint, %w", err)
+	if cfg.Utility {
+		err = utilityv1alpha1.RegisterUtilityServiceHandlerFromEndpoint(ctx, mux, cfg.GRPCURL, opts)
+		if err != nil {
+			return nil, fmt.Errorf("register utility service handler from endpoint, %w", err)
+		}
 	}
 
 	gw := &http.Server{

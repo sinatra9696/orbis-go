@@ -40,7 +40,7 @@ func (s *transportService) GetHost(ctx context.Context, req *transportv1alpha1.G
 			Id:      tp.Host().ID(),
 			Address: tp.Host().Address().String(),
 			PublicKey: &libp2pcrypto.PublicKey{
-				Type: libp2pcrypto.KeyType_Ed25519.Enum(),
+				Type: tp.Host().PublicKey().Type().Enum(),
 				Data: raw,
 			},
 		},

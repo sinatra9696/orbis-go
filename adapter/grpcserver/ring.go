@@ -60,10 +60,12 @@ func (s *ringService) CreateRing(ctx context.Context, req *ringv1alpha1.CreateRi
 		Id: string(r.ID),
 	}
 
-	err = r.Start(bgctx)
-	if err != nil {
-		return nil, fmt.Errorf("start ring: %w", err)
-	}
+	go func() {
+		err = r.Start(bgctx)
+		if err != nil {
+			log.Error("start ring: %w", err)
+		}
+	}()
 
 	return resp, nil
 }
