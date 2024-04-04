@@ -2,6 +2,9 @@ package host
 
 import (
 	"context"
+	"errors"
+	"os"
+	"path/filepath"
 
 	"crypto/rand"
 	"fmt"
@@ -55,15 +58,48 @@ func New(ctx context.Context, cfg config.Host) (*Host, error) {
 		cryptoType = libp2pcrypto.ECDSA
 	}
 
-	randomness := rand.Reader
-	if seed := cfg.Crypto.Seed; seed != 0 {
-		log.Warn("USING MANUAL SEED - !! WARNING !! INSECURE: ", seed)
-		randomness = mrand.New(mrand.NewSource(int64(seed)))
-	}
-
-	priv, _, err := libp2pcrypto.GenerateKeyPairWithReader(cryptoType, cfg.Crypto.Bits, randomness)
+	// check for existing key in ~/.orbis/keyfile
+	dirname, err := os.UserHomeDir()
 	if err != nil {
-		return nil, fmt.Errorf("generate key pair: %w", err)
+		return nil, err
+	}
+	var priv libp2pcrypto.PrivKey
+	path := filepath.Join(dirname, ".orbis", "keyfile")
+	_, err = os.Stat(path)
+	if err == nil {
+		// read
+		buf, err := os.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("reading key file: %w", err)
+		}
+		priv, err = libp2pcrypto.UnmarshalPrivateKey(buf)
+		if err != nil {
+			return nil, fmt.Errorf("unmarshaling priv key: %w", err)
+		}
+	} else if errors.Is(err, os.ErrNotExist) {
+		// generate
+		randomness := rand.Reader
+		if seed := cfg.Crypto.Seed; seed != 0 {
+			log.Warn("USING MANUAL SEED - !! WARNING !! INSECURE: ", seed)
+			randomness = mrand.New(mrand.NewSource(int64(seed)))
+		}
+
+		priv, _, err = libp2pcrypto.GenerateKeyPairWithReader(cryptoType, cfg.Crypto.Bits, randomness)
+		if err != nil {
+			return nil, fmt.Errorf("generate key pair: %w", err)
+		}
+		// save new key
+		buf, err := libp2pcrypto.MarshalPrivateKey(priv)
+		if err != nil {
+			return nil, fmt.Errorf("marshaling priv key: %w", err)
+		}
+		err = os.WriteFile(path, buf, 0600)
+		if err != nil {
+			return nil, fmt.Errorf("writing priv key: %w", err)
+		}
+	} else {
+		// error out
+		return nil, fmt.Errorf("checking key file: %w", err)
 	}
 
 	cpriv, err := crypto.PrivateKeyFromLibP2P(priv)
