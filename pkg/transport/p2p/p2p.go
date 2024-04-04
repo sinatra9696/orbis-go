@@ -57,7 +57,7 @@ func (t *Transport) Send(ctx context.Context, node transport.Node, msg *transpor
 	// todo protocol formatting
 	protocolID := protocol.ConvertFromStrings([]string{msg.GetType()})
 
-	log.Infof("transport.Send(): peerID:%s, ProtocolID:%v", peerID, protocolID)
+	log.Debugf("transport.Send(): peerID:%s, ProtocolID:%v", peerID, protocolID)
 	var stream network.Stream
 	newStream := func() error {
 		stream, err = t.h.NewStream(ctx, peerID, protocolID...)
@@ -159,7 +159,7 @@ func (t *Transport) RemoveHandler(pid protocol.ID) {
 func streamHandlerFrom(handler transport.Handler) func(network.Stream) {
 	return func(stream network.Stream) {
 
-		log.Infof("new stream from %s", stream.Conn().RemotePeer())
+		log.Debugf("new stream from %s", stream.Conn().RemotePeer())
 
 		buf, err := io.ReadAll(stream)
 		if err != nil {
@@ -188,7 +188,7 @@ func streamHandlerFrom(handler transport.Handler) func(network.Stream) {
 			return
 		}
 
-		log.Infof("received message: id:%s, type: %s", data.Id, data.Type)
+		log.Debug("received message: id:%s, type: %s", data.Id, data.Type)
 		err = handler(data)
 		if err != nil {
 			log.Errorf("handle data: %s", err)

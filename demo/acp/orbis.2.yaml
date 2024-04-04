@@ -6,8 +6,6 @@ grpc:
 
 logger:
   level: "debug"
-  zap:
-    encoding: "dev"
 
 host:
   crypto:
@@ -20,9 +18,6 @@ host:
 
 transport:
   rendezvous: "orbis-transport"
-
-authz:
-  address: zanzid:8080
 
 db:
   path: "data2"

@@ -10,6 +10,7 @@ import (
 	"github.com/sourcenetwork/orbis-go/config"
 	"github.com/sourcenetwork/orbis-go/pkg/util/cleaner"
 
+	logging "github.com/ipfs/go-log"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -20,6 +21,8 @@ func setupServer(cfg config.Config) error {
 
 	clnr := cleaner.New()
 	defer clnr.CleanUp()
+
+	setupLogger(cfg)
 
 	app, err := setupApp(ctx, cfg)
 	if err != nil {
@@ -61,4 +64,22 @@ func setupServer(cfg config.Config) error {
 
 	// Wait for all goroutines to finish.
 	return errGrp.Wait()
+}
+
+func setupLogger(cfg config.Config) error {
+	_, err := logging.LevelFromString(cfg.Logger.Level)
+	if err != nil {
+		return fmt.Errorf("invalid log level '%s'", cfg.Logger.Level)
+	}
+
+	logging.SetAllLoggers(logging.LevelDPanic)
+	logging.SetLogLevelRegex("orbis.*", cfg.Logger.Level)
+
+	// dht is really chatty
+	err = logging.SetLogLevelRegex("dht/.*", "error")
+	if err != nil {
+		return fmt.Errorf("set dht log level: %w", err)
+	}
+
+	return nil
 }

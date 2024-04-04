@@ -3,6 +3,8 @@ package cosmos
 import (
 	"context"
 	"fmt"
+	"os/user"
+	"strings"
 
 	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	"github.com/ignite/cli/v28/ignite/pkg/cosmosaccount"
@@ -18,17 +20,32 @@ type Client struct {
 }
 
 func New(ctx context.Context, cfg config.Cosmos) (*Client, error) {
+	fmt.Printf("keyring backend '%s'\n", cfg.KeyringBackend)
 	opts := []cosmosclient.Option{
 		cosmosclient.WithNodeAddress(cfg.RPCAddress),
 		cosmosclient.WithAddressPrefix(cfg.AddressPrefix),
 		cosmosclient.WithFees(cfg.Fees),
-		cosmosclient.WithKeyringBackend(cosmosaccount.KeyringBackend("test")), // TODO
+		cosmosclient.WithKeyringBackend(cosmosaccount.KeyringBackend(cfg.KeyringBackend)), // TODO
 	}
+	home := cfg.Home
+	if home != "" {
+		if strings.HasPrefix(home, "~/") {
+			user, err := user.Current()
+			if err != nil {
+				return nil, fmt.Errorf("couldn't resolve user home path: %w", err)
+			}
+			home = strings.Replace(home, "~", user.HomeDir, 1)
+		}
+		fmt.Println("home:", home)
+		opts = append(opts, cosmosclient.WithHome(home))
+	}
+
 	client, err := cosmosclient.New(ctx, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("new cosmos client: %w", err)
 	}
 
+	fmt.Println("cosmos account name:", cfg.AccountName)
 	account, err := client.Account(cfg.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("get account by name: %w", err)

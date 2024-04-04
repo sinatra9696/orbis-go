@@ -29,11 +29,7 @@ type Authz struct {
 }
 
 type Logger struct {
-	Level  string `default:"debug" description:"Log level"`
-	Logger string `default:"zap" description:"Logger"`
-	Zap    struct {
-		Encoding string `default:"dev" description:"Log encoding"`
-	}
+	Level string `default:"debug" description:"Log level"`
 }
 
 type GRPC struct {
@@ -50,11 +46,12 @@ type DKG struct {
 }
 
 type Cosmos struct {
-	AccountName   string `default:"" description:"Account name"`
-	AddressPrefix string `default:"" description:"Address prefix"`
-	KeyRing       string `default:"test" description:"Keyring backend"`
-	Fees          string `default:"" description:"Fees"`
-	RPCAddress    string `default:"" description:"RPC address"`
+	AccountName    string `default:"" description:"Account name"`
+	AddressPrefix  string `default:"" description:"Address prefix"`
+	KeyringBackend string `default:"os" description:"Keyring backend"`
+	Home           string `default:"" description:"Cosmos home directory"`
+	Fees           string `default:"" description:"Fees"`
+	RPCAddress     string `default:"" description:"RPC address"`
 }
 
 type Ring struct {
