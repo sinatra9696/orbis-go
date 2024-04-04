@@ -14,10 +14,7 @@ type Config struct {
 	GRPC      GRPC
 	Host      Host
 	Cosmos    Cosmos
-	DKG       DKG
 	Logger    Logger
-	Ring      Ring
-	Secret    Secret
 	Transport Transport
 	Bulletin  Bulletin
 	DB        DB
@@ -29,7 +26,7 @@ type Authz struct {
 }
 
 type Logger struct {
-	Level string `default:"debug" description:"Log level"`
+	Level string `default:"info" description:"Log level"`
 }
 
 type GRPC struct {
@@ -39,12 +36,6 @@ type GRPC struct {
 	Utility bool   `default:"false" description:"Enable the utility service (demo and test ONLY)"`
 }
 
-type DKG struct {
-	Repo      string `default:"simpledb" description:"DKG repo"`
-	Transport string `default:"p2ptp" description:"DKG transport"`
-	Bulletin  string `default:"p2pbb" description:"DKG Bulletin"`
-}
-
 type Cosmos struct {
 	AccountName    string `default:"" description:"Account name"`
 	AddressPrefix  string `default:"" description:"Address prefix"`
@@ -52,12 +43,6 @@ type Cosmos struct {
 	Home           string `default:"" description:"Cosmos home directory"`
 	Fees           string `default:"" description:"Fees"`
 	RPCAddress     string `default:"" description:"RPC address"`
-}
-
-type Ring struct {
-}
-
-type Secret struct {
 }
 
 type Transport struct {
@@ -87,7 +72,7 @@ type DB struct {
 }
 
 type configTypes interface {
-	Host | Cosmos | DB | Bulletin | Transport | Secret | Ring | DKG | GRPC | Logger
+	Host | Cosmos | DB | Bulletin | Transport | GRPC | Logger
 }
 
 func Default[T configTypes]() (T, error) {
