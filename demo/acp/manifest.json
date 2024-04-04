@@ -1,0 +1,15 @@
+{
+  "manifest": {
+    "n": 3,
+    "t": 2,
+    "dkg": "rabin",
+    "pss": "avpss",
+    "pre": "elgamal",
+    "bulletin": "sourcehub",
+    "transport": "p2p",
+    "authentication": "jws-did",
+    "authorization": "ACP",
+    "nodes": [{"id":"16Uiu2HAm35sSr96x1TJHBTkWdcDH9P8twhTw92iDyq38XvyGzgZN","address":"/ip4/127.0.0.1/tcp/9001"},{"id":"16Uiu2HAmAVcM6V1PY8DdvzobyK5QZbwX5z3AA6wCSrCm6xUA79Xn","address":"/ip4/127.0.0.1/tcp/9002"},{"id":"16Uiu2HAkzjLLosHcV4LGvLY4vskda5NgMW4qmtfQ2uMbgFAoqghX","address":"/ip4/127.0.0.1/tcp/9003"}],
+    "nonce": 0
+  }
+}
