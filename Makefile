@@ -1,5 +1,8 @@
-docker:
+ko:
 	KO_DOCKER_REPO=ko.local ko build -B --platform=linux/$$(go env GOARCH) ./cmd/orbisd
+
+docker:
+	docker build -t orbisd .
 
 .PHONY: build
 build:
