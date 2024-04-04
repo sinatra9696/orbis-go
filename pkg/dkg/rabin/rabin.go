@@ -474,7 +474,7 @@ func (d *dkg) ProcessMessage(msg *transport.Message) error {
 		if err != nil {
 			return fmt.Errorf("dispatch deal message: %w", err)
 		}
-		log.Debug("successfully dispatched deal from: %s", protoDeal.NodeId)
+		log.Debugf("successfully dispatched deal from: %s", protoDeal.NodeId)
 
 	case ResponseNamespace:
 		log.Debugf("dkg.ProcessMessage() ProtocolResponse: id: %s - started", msg.Id)

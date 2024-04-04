@@ -3,7 +3,6 @@ package sourcehub
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 
 	"github.com/golang/protobuf/proto"
@@ -35,8 +34,9 @@ var _ bulletin.Bulletin = (*Bulletin)(nil)
 type Bulletin struct {
 	cfg config.Bulletin
 
-	client *cosmos.Client
-	bus    eventbus.Bus
+	resultsCh <-chan rpctypes.ResultEvent
+	client    *cosmos.Client
+	bus       eventbus.Bus
 }
 
 func New(ctx context.Context, host *host.Host, client *cosmos.Client, cfg config.Bulletin) (*Bulletin, error) {
@@ -54,10 +54,11 @@ func (bb *Bulletin) Name() string {
 }
 
 func (bb *Bulletin) Init(ctx context.Context) error {
-	err := bb.client.RpcClient.Subscribe(ctx, "tm.event='Tx' AND NewPost.payload EXISTS")
+	resultsCh, err := bb.client.RPC.Subscribe(ctx, "", "tm.event='Tx' AND NewPost.payload EXISTS")
 	if err != nil {
 		return fmt.Errorf("subscribe to namespace: %w", err)
 	}
+	bb.resultsCh = resultsCh
 
 	bb.bus = eventbus.NewBus()
 
@@ -201,12 +202,12 @@ func (bb *Bulletin) Events() eventbus.Bus {
 
 func (bb *Bulletin) HandleEvents() {
 
-	for resp := range bb.client.RpcClient.ResponsesCh {
-		result := &rpctypes.ResultEvent{}
-		err := json.Unmarshal((resp.Result), result)
-		if err != nil {
-			log.Warnf("coud not unmarshal events resp: %v", err)
-		}
+	for result := range bb.resultsCh {
+		// result := &rpctypes.ResultEvent{}
+		// err := json.Unmarshal((resp.Result), result)
+		// if err != nil {
+		// 	log.Warnf("coud not unmarshal events resp: %v", err)
+		// }
 
 		attrNamespace, ok := result.Events["NewPost.namespace"]
 		if !ok {

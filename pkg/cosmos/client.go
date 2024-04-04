@@ -6,7 +6,6 @@ import (
 	"os/user"
 	"strings"
 
-	rpcclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 	"github.com/ignite/cli/v28/ignite/pkg/cosmosaccount"
 	"github.com/ignite/cli/v28/ignite/pkg/cosmosclient"
 	"github.com/sourcenetwork/orbis-go/config"
@@ -14,13 +13,12 @@ import (
 
 type Client struct {
 	cosmosclient.Client
-	Account   cosmosaccount.Account
-	Address   string
-	RpcClient *rpcclient.WSClient
+	Account cosmosaccount.Account
+	Address string
+	// RpcClient *rpcclient.WSClient
 }
 
 func New(ctx context.Context, cfg config.Cosmos) (*Client, error) {
-	fmt.Printf("keyring backend '%s'\n", cfg.KeyringBackend)
 	opts := []cosmosclient.Option{
 		cosmosclient.WithNodeAddress(cfg.RPCAddress),
 		cosmosclient.WithAddressPrefix(cfg.AddressPrefix),
@@ -36,7 +34,6 @@ func New(ctx context.Context, cfg config.Cosmos) (*Client, error) {
 			}
 			home = strings.Replace(home, "~", user.HomeDir, 1)
 		}
-		fmt.Println("home:", home)
 		opts = append(opts, cosmosclient.WithHome(home))
 	}
 
@@ -45,7 +42,6 @@ func New(ctx context.Context, cfg config.Cosmos) (*Client, error) {
 		return nil, fmt.Errorf("new cosmos client: %w", err)
 	}
 
-	fmt.Println("cosmos account name:", cfg.AccountName)
 	account, err := client.Account(cfg.AccountName)
 	if err != nil {
 		return nil, fmt.Errorf("get account by name: %w", err)
@@ -56,20 +52,20 @@ func New(ctx context.Context, cfg config.Cosmos) (*Client, error) {
 		return nil, fmt.Errorf("get account address: %w", err)
 	}
 
-	rpcClient, err := rpcclient.NewWS(cfg.RPCAddress, "/websocket")
-	if err != nil {
-		return nil, fmt.Errorf("new rpc client: %w", err)
-	}
+	// rpcClient, err := rpcclient.NewWS(cfg.RPCAddress, "/websocket")
+	// if err != nil {
+	// 	return nil, fmt.Errorf("new rpc client: %w", err)
+	// }
 
-	err = rpcClient.Start()
+	err = client.RPC.Start()
 	if err != nil {
 		return nil, fmt.Errorf("rpc client start: %w", err)
 	}
 
 	return &Client{
-		Client:    client,
-		Account:   account,
-		Address:   address,
-		RpcClient: rpcClient,
+		Client:  client,
+		Account: account,
+		Address: address,
+		// RpcClient: rpcClient,
 	}, nil
 }
