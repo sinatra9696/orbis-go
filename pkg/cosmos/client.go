@@ -19,6 +19,8 @@ type Client struct {
 }
 
 func New(ctx context.Context, cfg config.Cosmos) (*Client, error) {
+	// remove trailing slash from RPCAddress
+	cfg.RPCAddress, _ = strings.CutSuffix(cfg.RPCAddress, "/")
 	opts := []cosmosclient.Option{
 		cosmosclient.WithNodeAddress(cfg.RPCAddress),
 		cosmosclient.WithAddressPrefix(cfg.AddressPrefix),
