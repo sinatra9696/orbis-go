@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	TransportService_GetHost_FullMethodName = "/orbis.transport.v1alpha1.TransportService/GetHost"
+	TransportService_GetHost_FullMethodName  = "/orbis.transport.v1alpha1.TransportService/GetHost"
+	TransportService_GetPeers_FullMethodName = "/orbis.transport.v1alpha1.TransportService/GetPeers"
 )
 
 // TransportServiceClient is the client API for TransportService service.
@@ -28,6 +29,8 @@ const (
 type TransportServiceClient interface {
 	// GetHost returns the information about the host node.
 	GetHost(ctx context.Context, in *GetHostRequest, opts ...grpc.CallOption) (*GetHostResponse, error)
+	// GetPeers returns the peer information about the host node
+	GetPeers(ctx context.Context, in *GetPeersRequest, opts ...grpc.CallOption) (*GetPeersResponse, error)
 }
 
 type transportServiceClient struct {
@@ -47,12 +50,23 @@ func (c *transportServiceClient) GetHost(ctx context.Context, in *GetHostRequest
 	return out, nil
 }
 
+func (c *transportServiceClient) GetPeers(ctx context.Context, in *GetPeersRequest, opts ...grpc.CallOption) (*GetPeersResponse, error) {
+	out := new(GetPeersResponse)
+	err := c.cc.Invoke(ctx, TransportService_GetPeers_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TransportServiceServer is the server API for TransportService service.
 // All implementations must embed UnimplementedTransportServiceServer
 // for forward compatibility
 type TransportServiceServer interface {
 	// GetHost returns the information about the host node.
 	GetHost(context.Context, *GetHostRequest) (*GetHostResponse, error)
+	// GetPeers returns the peer information about the host node
+	GetPeers(context.Context, *GetPeersRequest) (*GetPeersResponse, error)
 	mustEmbedUnimplementedTransportServiceServer()
 }
 
@@ -62,6 +76,9 @@ type UnimplementedTransportServiceServer struct {
 
 func (UnimplementedTransportServiceServer) GetHost(context.Context, *GetHostRequest) (*GetHostResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetHost not implemented")
+}
+func (UnimplementedTransportServiceServer) GetPeers(context.Context, *GetPeersRequest) (*GetPeersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPeers not implemented")
 }
 func (UnimplementedTransportServiceServer) mustEmbedUnimplementedTransportServiceServer() {}
 
@@ -94,6 +111,24 @@ func _TransportService_GetHost_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TransportService_GetPeers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPeersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TransportServiceServer).GetPeers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TransportService_GetPeers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TransportServiceServer).GetPeers(ctx, req.(*GetPeersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TransportService_ServiceDesc is the grpc.ServiceDesc for TransportService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -104,6 +139,10 @@ var TransportService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetHost",
 			Handler:    _TransportService_GetHost_Handler,
+		},
+		{
+			MethodName: "GetPeers",
+			Handler:    _TransportService_GetPeers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

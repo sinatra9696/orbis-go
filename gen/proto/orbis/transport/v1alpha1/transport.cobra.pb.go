@@ -21,6 +21,7 @@ func TransportServiceClientCommand(options ...client.Option) *cobra.Command {
 	cfg.BindFlags(cmd.PersistentFlags())
 	cmd.AddCommand(
 		_TransportServiceGetHostCommand(cfg),
+		_TransportServiceGetPeersCommand(cfg),
 	)
 	return cmd
 }
@@ -51,6 +52,48 @@ func _TransportServiceGetHostCommand(cfg *client.Config) *cobra.Command {
 				proto.Merge(v, req)
 
 				res, err := cli.GetHost(cmd.Context(), v)
+
+				if err != nil {
+					return err
+				}
+
+				return out(res)
+
+			})
+		},
+	}
+
+	cmd.PersistentFlags().StringVar(&req.Transport, cfg.FlagNamer("Transport"), "", "")
+
+	return cmd
+}
+
+func _TransportServiceGetPeersCommand(cfg *client.Config) *cobra.Command {
+	req := &GetPeersRequest{}
+
+	cmd := &cobra.Command{
+		Use:   cfg.CommandNamer("GetPeers"),
+		Short: "GetPeers RPC client",
+		Long:  "GetPeers returns the peer information about the host node",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if cfg.UseEnvVars {
+				if err := flag.SetFlagsFromEnv(cmd.Parent().PersistentFlags(), true, cfg.EnvVarNamer, cfg.EnvVarPrefix, "TransportService"); err != nil {
+					return err
+				}
+				if err := flag.SetFlagsFromEnv(cmd.PersistentFlags(), false, cfg.EnvVarNamer, cfg.EnvVarPrefix, "TransportService", "GetPeers"); err != nil {
+					return err
+				}
+			}
+			return client.RoundTrip(cmd.Context(), cfg, func(cc grpc.ClientConnInterface, in iocodec.Decoder, out iocodec.Encoder) error {
+				cli := NewTransportServiceClient(cc)
+				v := &GetPeersRequest{}
+
+				if err := in(v); err != nil {
+					return err
+				}
+				proto.Merge(v, req)
+
+				res, err := cli.GetPeers(cmd.Context(), v)
 
 				if err != nil {
 					return err
