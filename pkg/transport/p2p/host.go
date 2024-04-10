@@ -1,6 +1,8 @@
 package p2p
 
 import (
+	"fmt"
+
 	"github.com/sourcenetwork/orbis-go/pkg/crypto"
 
 	ic "github.com/libp2p/go-libp2p/core/crypto"
@@ -23,6 +25,7 @@ func (h *Host) PublicKey() crypto.PublicKey {
 }
 
 func (h *Host) Address() ma.Multiaddr {
+	fmt.Println(h.host.Addrs())
 	return h.host.Addrs()[0]
 }
 

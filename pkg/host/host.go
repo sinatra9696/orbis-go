@@ -63,8 +63,21 @@ func New(ctx context.Context, cfg config.Host) (*Host, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// ensure orbis default home dir
+	path := filepath.Join(dirname, ".orbis")
+	_, err = os.Stat(path)
+	if errors.Is(err, os.ErrNotExist) {
+		err = os.Mkdir(path, 0755)
+		if err != nil {
+			return nil, fmt.Errorf("creating orbis directory: %w", err)
+		}
+	} else if err != nil {
+		return nil, fmt.Errorf("checking orbis directory: %w", err)
+	}
+
 	var priv libp2pcrypto.PrivKey
-	path := filepath.Join(dirname, ".orbis", "keyfile")
+	path = filepath.Join(dirname, ".orbis", "keyfile")
 	_, err = os.Stat(path)
 	if err == nil {
 		// read

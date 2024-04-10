@@ -48,3 +48,19 @@ func (s *transportService) GetHost(ctx context.Context, req *transportv1alpha1.G
 
 	return resp, nil
 }
+
+func (s *transportService) GetPeers(ctx context.Context, req *transportv1alpha1.GetPeersRequest) (*transportv1alpha1.GetPeersResponse, error) {
+	var peers []*transportv1alpha1.Node
+	peerstore := s.app.Host().Network().Peerstore()
+	for _, p := range s.app.Host().Network().Peers() {
+		addr := peerstore.PeerInfo(p)
+		peers = append(peers, &transportv1alpha1.Node{
+			Id:      addr.ID.String(),
+			Address: addr.String(),
+		})
+	}
+
+	return &transportv1alpha1.GetPeersResponse{
+		Nodes: peers,
+	}, nil
+}

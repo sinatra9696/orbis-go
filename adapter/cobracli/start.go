@@ -31,7 +31,7 @@ func StartCmd(setup func(config.Config) error) (*cobra.Command, error) {
 			file := cmd.Flag("config").Value.String()
 			cfg, err := readConfigFile(file)
 			if err != nil {
-				return fmt.Errorf("read config file: %w", err)
+				return fmt.Errorf("reading config file: %w", err)
 			}
 
 			return setup(cfg)
