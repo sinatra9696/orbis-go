@@ -26,6 +26,8 @@ services:
     depends_on:
       sourcehubd:
         condition: service_started
+        
+    # default image runs as user 'node'
     image: ghcr.io/sourcenetwork/orbis:0.2.2
     volumes:
       - orbis-data:/home/node/.orbis
@@ -37,15 +39,13 @@ services:
       - "8090:8090" # REST API
 
   sourcehubd:
+    # default image runs as user 'node'
     image: ghcr.io/sourcenetwork/sourcehub:0.2.0
     volumes:
       - sourcehub-data:/home/node/.sourcehub
     command:
       - start
-      - --log_level
-      - warn
-      - --minimum-gas-prices
-      - 0.0001stake
+      # - Add whatever CLI args/flags
     ports:
       - "26657:26657" # RPC
       - "26656:26656" # P2P 
