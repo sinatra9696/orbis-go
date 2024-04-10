@@ -10,6 +10,19 @@ service TransportService {
   rpc GetHost(GetHostRequest) returns (GetHostResponse) {
     option (google.api.http) = {get: "/v1alpha1/transport/host/{transport}"};
   }
+
+  // GetPeers returns the peer information about the host node
+  rpc GetPeers(GetPeersRequest) returns (GetPeersResponse) {
+    option (google.api.http) = {get: "/v1alpha1/transport/peers/{transport}"};
+  }
+}
+
+message GetPeersRequest {
+  string transport = 1;
+}
+
+message GetPeersResponse {
+  repeated Node nodes = 1;
 }
 
 message GetHostRequest {
