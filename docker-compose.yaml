@@ -27,13 +27,10 @@ services:
       sourcehubd:
         condition: service_started
     image: ghcr.io/sourcenetwork/orbis:0.2.2
-    # image: debian:bookworm-slim
     volumes:
       - orbis-data:/home/node/.orbis
       - sourcehub-data:/home/node/.sourcehub # Needed to access sourcehub cli keyring
     command: ["start", "--config", "/home/node/.orbis/orbis.yml"]
-    # entrypoint: [""]
-    # command: ["ls","-lah", "/home/node/.orbis"]
     ports:
       - "9000:9000" # P2P
       - "8080:8080" # GRPC API
