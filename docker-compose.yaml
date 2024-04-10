@@ -1,0 +1,56 @@
+# Docker-Compose example for composing both OrbisD and SourceHub
+# together.
+#
+# NOTE: The volumes for both images are mounted from the local system
+# by default. Since docker runs under root, new files in these volumes
+# will be owned by root.
+# - Orbis gets $HOME/.orbis mounted as /root/.orbis
+# - SourceHub gets $HOME/.orbis mounted as /root/.sourcehub
+
+volumes:
+  orbis-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: $HOME/.orbis
+      o: bind
+  sourcehub-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: $HOME/.sourcehub
+      o: bind
+
+services:
+  orbisd:
+    depends_on:
+      sourcehubd:
+        condition: service_started
+    image: ghcr.io/sourcenetwork/orbis:0.2.2
+    # image: debian:bookworm-slim
+    volumes:
+      - orbis-data:/home/node/.orbis
+      - sourcehub-data:/home/node/.sourcehub # Needed to access sourcehub cli keyring
+    command: ["start", "--config", "/home/node/.orbis/orbis.yml"]
+    # entrypoint: [""]
+    # command: ["ls","-lah", "/home/node/.orbis"]
+    ports:
+      - "9000:9000" # P2P
+      - "8080:8080" # GRPC API
+      - "8090:8090" # REST API
+
+  sourcehubd:
+    image: ghcr.io/sourcenetwork/sourcehub:0.2.0
+    volumes:
+      - sourcehub-data:/home/node/.sourcehub
+    command:
+      - start
+      - --log_level
+      - warn
+      - --minimum-gas-prices
+      - 0.0001stake
+    ports:
+      - "26657:26657" # RPC
+      - "26656:26656" # P2P 
+      - "1317:1317" # API
+      - "4500:4500"
