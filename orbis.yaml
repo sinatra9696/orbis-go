@@ -27,7 +27,7 @@ db:
 cosmos:
   chainId: sourcehub-testnet1
   accountName: INSERT_KEY_NAME
-  keyringBackend: test
+  keyringBackend: os
   addressPrefix: source
   fees: 2000uopen
   home: ~/.sourcehub
