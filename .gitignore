@@ -2,3 +2,4 @@
 orbisd
 orbisctl
 *.log
+logs*txt
