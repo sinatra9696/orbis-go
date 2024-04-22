@@ -1,0 +1,29 @@
+grpc:
+  grpcURL: "0.0.0.0:8081"
+  restURL: "0.0.0.0:8091"
+  logging: true
+  utility: true
+
+logger:
+  level: "debug"
+
+host:
+  crypto:
+    seed: 1
+    type: secp256k1
+  listenAddresses:
+    - /ip4/0.0.0.0/tcp/9001
+
+transport:
+  rendezvous: "orbis-transport"
+
+db:
+  path: "data1"
+
+cosmos:
+  chainId: sourcehub-testnet1
+  accountName: validator1
+  keyringBackend: test
+  addressPrefix: source
+  fees: 30stake
+  rpcAddress: http://host.docker.internal:26657
