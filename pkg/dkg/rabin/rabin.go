@@ -350,7 +350,7 @@ func (d *dkg) Start(ctx context.Context) error {
 
 	log.Debug("Starting rabin DKG")
 
-	d.connectToPeers(ctx)
+	// d.connectToPeers(ctx)
 
 	log.Debug("Generating and persisting deals")
 

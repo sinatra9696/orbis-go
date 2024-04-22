@@ -54,7 +54,7 @@ func (bb *Bulletin) Name() string {
 }
 
 func (bb *Bulletin) Init(ctx context.Context) error {
-	resultsCh, err := bb.client.RPC.Subscribe(ctx, "", "tm.event='Tx' AND NewPost.payload EXISTS")
+	resultsCh, err := bb.client.RPC.Subscribe(ctx, "", "tm.event='Tx' AND NewPost.payload EXISTS", 0)
 	if err != nil {
 		return fmt.Errorf("subscribe to namespace: %w", err)
 	}
@@ -236,6 +236,7 @@ func (bb *Bulletin) HandleEvents() {
 			ID:      namespace,
 		}
 
+		log.Debugf("bulletin recieved event: %s", namespace)
 		err = eventbus.Publish(bb.bus, evt)
 		if err != nil {
 			log.Warnf("failed to publish event to channel: %w", err)

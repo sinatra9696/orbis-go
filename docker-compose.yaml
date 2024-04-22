@@ -26,13 +26,13 @@ services:
     depends_on:
       sourcehubd:
         condition: service_started
-        
+
     # default image runs as user 'node'
     image: ghcr.io/sourcenetwork/orbis:0.2.2
     volumes:
       - orbis-data:/home/node/.orbis
       - sourcehub-data:/home/node/.sourcehub # Needed to access sourcehub cli keyring
-    command: ["start", "--config", "/home/node/.orbis/orbis.yml"]
+    command: ["start", "--config", "/home/node/.orbis/orbis.yaml"]
     ports:
       - "9000:9000" # P2P
       - "8080:8080" # GRPC API

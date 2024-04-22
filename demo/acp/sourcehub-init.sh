@@ -4,6 +4,7 @@ MONIKER=demo
 VALIDATOR1=validator1
 VALIDATOR2=validator2
 VALIDATOR3=validator3
+VALIDATOR4=validator4
 ALICE=alice
 BOB=bob
 
@@ -12,6 +13,7 @@ sourcehubd init $MONIKER --chain-id sourcehub
 sourcehubd keys add ${VALIDATOR1} --keyring-backend test
 sourcehubd keys add ${VALIDATOR2} --keyring-backend test
 sourcehubd keys add ${VALIDATOR3} --keyring-backend test
+sourcehubd keys add ${VALIDATOR4} --keyring-backend test
 
 # Static keys for testing
 # Alice Address source16dgy2uw5p74a0pzuwmq0hpl44xzn2yfauxfc70
@@ -27,12 +29,14 @@ cat /demo/bob.seed | sourcehubd keys add ${BOB} --recover --keyring-backend test
 VALIDATOR1_ADDRESS=$(sourcehubd keys show ${VALIDATOR1} --address --keyring-backend test)
 VALIDATOR2_ADDRESS=$(sourcehubd keys show ${VALIDATOR2} --address --keyring-backend test)
 VALIDATOR3_ADDRESS=$(sourcehubd keys show ${VALIDATOR3} --address --keyring-backend test)
+VALIDATOR4_ADDRESS=$(sourcehubd keys show ${VALIDATOR4} --address --keyring-backend test)
 ALICE_ADDRESS=$(sourcehubd keys show ${ALICE} --address --keyring-backend test)
 BOB_ADDRESS=$(sourcehubd keys show ${BOB} --address --keyring-backend test)
 
 sourcehubd genesis add-genesis-account $VALIDATOR1_ADDRESS 100000000stake
 sourcehubd genesis add-genesis-account $VALIDATOR2_ADDRESS 100000000stake
 sourcehubd genesis add-genesis-account $VALIDATOR3_ADDRESS 100000000stake
+sourcehubd genesis add-genesis-account $VALIDATOR4_ADDRESS 100000stake
 sourcehubd genesis add-genesis-account $ALICE_ADDRESS 100000stake
 sourcehubd genesis add-genesis-account $BOB_ADDRESS 100000stake
 

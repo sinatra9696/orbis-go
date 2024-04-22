@@ -12,6 +12,10 @@ run:
 	docker-compose -f demo/acp/compose.yaml down -v
 	docker-compose -f demo/acp/compose.yaml up
 
+run-large:
+	docker-compose -f demo/acp-large/compose.yaml down -v
+	docker-compose -f demo/acp-large/compose.yaml up
+
 
 rund:
 	docker-compose -f demo/compose.yaml down -v
