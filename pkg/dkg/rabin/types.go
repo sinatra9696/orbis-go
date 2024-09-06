@@ -253,7 +253,7 @@ func dkgToProto(d *dkg) (*rabinv1alpha1.DKG, error) {
 	if d.participants != nil {
 		nodes = make([]*rabinv1alpha1.Node, len(d.participants))
 		for i, p := range d.participants {
-			pk, err := ic.PublicKeyToProto(p.PublicKey())
+			pk, err := ic.PublicKeyToProto(crypto.ToLibP2PPublicKey(p.PublicKey()))
 			if err != nil {
 				return nil, fmt.Errorf("couldnt convert public key to proto: %w", err)
 			}
@@ -270,8 +270,7 @@ func dkgToProto(d *dkg) (*rabinv1alpha1.DKG, error) {
 	if d.distPubKey != nil {
 		distPubKey, err = d.distPubKey.MarshalBinary()
 		if err != nil {
-			fmt.Println("dkg state", d.State())
-			fmt.Println("distpubkey", d.distPubKey)
+
 			return nil, fmt.Errorf("couldn't marshal pubkey: %w", err)
 		}
 	}
@@ -400,7 +399,7 @@ func dkgFromProto(d *rabinv1alpha1.DKG) (dkg, error) {
 
 	participants := make([]orbisdkg.Node, len(d.Nodes))
 	for i, n := range d.Nodes {
-		pk, err := ic.PublicKeyFromProto(n.PublicKey)
+		pk, err := crypto.PublicKeyFromProto(n.PublicKey)
 		if err != nil {
 			return dkg{}, fmt.Errorf("couldnt convert proto to public key: %w", err)
 		}

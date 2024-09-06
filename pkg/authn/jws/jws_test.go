@@ -36,8 +36,8 @@ var (
 	// testAddress    = mustGenerateBech32Address(addressPresfix, cryptoPubKey)
 )
 
-func mustGenerateBech32Address(prefix string, pk crypto.PublicKey) string {
-	addr, err := publicKeyToBech32(prefix, pk)
+func mustGenerateBech32Address(pk crypto.PublicKey) string {
+	addr, err := crypto.PublicKeyToBech32(pk)
 	if err != nil {
 		panic(err)
 	}
@@ -197,7 +197,7 @@ func TestJWSCredentialServicBech32(t *testing.T) {
 	ed25519PrivKey, ed25519PubKey := mustGenerateEd25519PrivateKey()
 	cryptoPubKey := mustGetPublicKey(ed25519PubKey)
 	ed25519Signer := mustMakeSigner(jose.EdDSA, ed25519PrivKey, testKID)
-	testAddress := mustGenerateBech32Address(addressPresfix, cryptoPubKey)
+	testAddress := mustGenerateBech32Address(cryptoPubKey)
 
 	// create signed JWT token
 	claims := claims{

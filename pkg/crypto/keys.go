@@ -6,13 +6,21 @@ import (
 	"crypto/ed25519"
 	"crypto/sha256"
 	"crypto/sha512"
+	"crypto/subtle"
+	b64 "encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
 
+	scrypto "github.com/TBD54566975/ssi-sdk/crypto"
+	"github.com/TBD54566975/ssi-sdk/did/key"
 	cometcrypto "github.com/cometbft/cometbft/crypto"
+	"github.com/cometbft/cometbft/crypto/tmhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	ic "github.com/libp2p/go-libp2p/core/crypto"
 	icpb "github.com/libp2p/go-libp2p/core/crypto/pb"
 	"go.dedis.ch/kyber/v3"
@@ -21,9 +29,16 @@ import (
 	"golang.org/x/crypto/ripemd160"
 )
 
-type KeyType = icpb.KeyType
+type KeyType int32
 
-func KeyTypeFromString(keyType string) (KeyType, error) {
+func (kt KeyType) String() string {
+	if kt == 4 {
+		return "octet"
+	}
+	return icpb.KeyType(kt).String()
+}
+
+func KeyPairTypeFromString(keyType string) (KeyType, error) {
 	switch strings.ToLower(keyType) {
 	case "ed25519":
 		return Ed25519, nil
@@ -37,19 +52,86 @@ func KeyTypeFromString(keyType string) (KeyType, error) {
 }
 
 var (
-	Ed25519   = icpb.KeyType_Ed25519
-	ECDSA     = icpb.KeyType_ECDSA
-	Secp256k1 = icpb.KeyType_Secp256k1
+	Ed25519   = KeyType(icpb.KeyType_Ed25519)
+	ECDSA     = KeyType(icpb.KeyType_ECDSA)
+	Secp256k1 = KeyType(icpb.KeyType_Secp256k1)
+	// Generic octet sequence ([]byte) for symetric keys, icpb.KeyType uses 0-3
+	Octet = KeyType(4)
 )
+
+type Key interface {
+	// Equals checks whether two keys are the same
+	Equals(Key) bool
+	// Raw returns the raw bytes of the key
+	Raw() ([]byte, error)
+	// Type returns the key type
+	Type() KeyType
+}
+
+func IsAsymmetric(key Key) bool {
+	switch key.(type) {
+	case PublicKey, PrivateKey:
+		return true
+	}
+	return false
+}
+
+func IsPublic(key Key) bool {
+	switch key.(type) {
+	case PublicKey:
+		return true
+	}
+	return false
+}
+
+func IsPrivate(key Key) bool {
+	switch key.(type) {
+	case PrivateKey:
+		return true
+	}
+	return false
+}
+
+func GetPublic(key Key) (PublicKey, error) {
+	if !IsAsymmetric(key) {
+		return nil, fmt.Errorf("key must be asymmetric")
+	}
+
+	switch kt := key.(type) {
+	case PublicKey:
+		return kt, nil
+	case PrivateKey:
+		return kt.GetPublic(), nil
+	}
+	return nil, fmt.Errorf("unknown key type")
+}
+
+func GetPrivate(key Key) (PrivateKey, error) {
+	if !IsAsymmetric(key) {
+		return nil, fmt.Errorf("key must by asymmetric")
+	}
+
+	priv, ok := key.(PrivateKey)
+	if !ok {
+		return nil, fmt.Errorf("key isn't private")
+	}
+
+	return priv, nil
+}
 
 // PublicKey
 type PublicKey interface {
-	ic.PubKey
+	Key
+	Verify(data []byte, sig []byte) (bool, error)
 	Point() kyber.Point
 	Std() (gocrypto.PublicKey, error)
+	String() string
+	DID() (string, error)
 }
 
-type pubKey struct {
+var _ PublicKey = (*pubKeyLibP2P)(nil)
+
+type pubKeyLibP2P struct {
 	ic.PubKey
 	suite suites.Suite
 }
@@ -123,10 +205,10 @@ func PublicKeyFromPoint(suite suites.Suite, point kyber.Point) (PublicKey, error
 	return PublicKeyFromLibP2P(pk)
 }
 
-func PublicKeyFromBytes(keyType string, buf []byte) (PublicKey, error) {
+func PublicKeyFromBytes(keyType KeyType, buf []byte) (PublicKey, error) {
 	var pk ic.PubKey
 	var err error
-	switch strings.ToLower(keyType) {
+	switch keyType.String() {
 	case "ed25519":
 		pk, err = ic.UnmarshalEd25519PublicKey(buf)
 	case "secp256k1":
@@ -146,31 +228,35 @@ func PublicKeyFromBytes(keyType string, buf []byte) (PublicKey, error) {
 	return PublicKeyFromLibP2P(pk)
 }
 
-func publicKeyFromLibP2P(pubkey ic.PubKey) (*pubKey, error) {
-	suite, err := SuiteForType(pubkey.Type())
+func publicKeyFromLibP2P(pubkey ic.PubKey) (*pubKeyLibP2P, error) {
+	suite, err := SuiteForType(KeyType(pubkey.Type()))
 	if err != nil {
 		return nil, err
 	}
 
-	return &pubKey{
+	return &pubKeyLibP2P{
 		PubKey: pubkey,
 		suite:  suite,
 	}, nil
 
 }
 
-func PublicKeyToProto(pk PublicKey) (*icpb.PublicKey, error) {
-	return ic.PublicKeyToProto(pk)
+func ToLibP2PPublicKey(pk PublicKey) ic.PubKey {
+	return pk.(*pubKeyLibP2P).PubKey
 }
 
-func (p *pubKey) Point() kyber.Point {
+func PublicKeyToProto(pk PublicKey) (*icpb.PublicKey, error) {
+	return ic.PublicKeyToProto(pk.(*pubKeyLibP2P).PubKey)
+}
+
+func (p *pubKeyLibP2P) Point() kyber.Point {
 	buf, _ := p.PubKey.Raw()
 	point := p.suite.Point()
 	point.UnmarshalBinary(buf)
 	return point
 }
 
-func (p *pubKey) Std() (gocrypto.PublicKey, error) {
+func (p *pubKeyLibP2P) Std() (gocrypto.PublicKey, error) {
 	// our version of "standard" secp256k1 keys uses the
 	// dcred type directly, as its more common among our
 	// dependencies (like go-jose)
@@ -178,28 +264,114 @@ func (p *pubKey) Std() (gocrypto.PublicKey, error) {
 	case *ic.Secp256k1PublicKey:
 		return (*secp256k1.PublicKey)(pk), nil
 	}
-	return ic.PubKeyToStdKey(p.PubKey)
+	gokey, err := ic.PubKeyToStdKey(p.PubKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// convert ed25519 keys to non pointers
+	switch kt := gokey.(type) {
+	case *ed25519.PublicKey:
+		return *kt, nil
+	}
+	return gokey, nil
 }
 
-type libp2pPrivKey interface {
-	ic.Key
-	Sign([]byte) ([]byte, error)
+func (p *pubKeyLibP2P) String() string {
+	buf, _ := p.Raw()
+
+	enc := b64.StdEncoding.EncodeToString(buf)
+	return enc
 }
+
+func (p *pubKeyLibP2P) DID() (string, error) {
+	didKeyType, err := cryptoKeyTypeToDID(p.Type())
+	if err != nil {
+		return "", err
+	}
+	keyBuf, err := p.Raw()
+	if err != nil {
+		return "", err
+	}
+	didKey, err := key.CreateDIDKey(didKeyType, keyBuf)
+	if err != nil {
+		return "", fmt.Errorf("creating did: %w", err)
+	}
+
+	return didKey.String(), nil
+}
+
+func (p *pubKeyLibP2P) MarshalJWK() ([]byte, error) {
+	goPubKey, err := ic.PubKeyToStdKey(p.PubKey)
+	if err != nil {
+		return nil, err
+	}
+	jPubKey, err := jwk.FromRaw(goPubKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(jPubKey)
+}
+
+func (p *pubKeyLibP2P) Type() KeyType {
+	// we can safely ignore this error
+	// since its already validated
+	return KeyType(p.PubKey.Type())
+}
+
+func (p *pubKeyLibP2P) Equals(k1 Key) bool {
+	if p == k1 {
+		return true
+	}
+
+	return basicEquals(p, k1)
+}
+
+func cryptoKeyTypeToDID(kt KeyType) (scrypto.KeyType, error) {
+	switch kt {
+	case Ed25519:
+		return scrypto.Ed25519, nil
+	case Secp256k1:
+		return scrypto.SECP256k1, nil
+	}
+
+	return "", fmt.Errorf("invalid key type")
+}
+
+func basicEquals(k1, k2 Key) bool {
+	if k1.Type() != k2.Type() {
+		return false
+	}
+
+	a, err := k1.Raw()
+	if err != nil {
+		return false
+	}
+	b, err := k2.Raw()
+	if err != nil {
+		return false
+	}
+	return subtle.ConstantTimeCompare(a, b) == 1
+}
+
+var _ PrivateKey = (*privKeyLibP2P)(nil)
 
 type PrivateKey interface {
-	libp2pPrivKey
+	Key
+	Sign([]byte) ([]byte, error)
 	Scalar() kyber.Scalar
 	GetPublic() PublicKey
-	// Std() gocrypto.PrivateKey
+	Std() (gocrypto.PrivateKey, error)
 }
 
-type privKey struct {
+type privKeyLibP2P struct {
 	ic.PrivKey
 	suite suites.Suite
 }
 
-func GenerateKeyPair(ste suites.Suite, src io.Reader) (PrivateKey, PublicKey, error) {
-	keyType, err := KeyTypeFromString(ste.String())
+func GenerateKeyPair(keyType KeyType, src io.Reader) (PrivateKey, PublicKey, error) {
+	suite, err := SuiteForType(keyType)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -208,27 +380,27 @@ func GenerateKeyPair(ste suites.Suite, src io.Reader) (PrivateKey, PublicKey, er
 		return nil, nil, err
 	}
 
-	return &privKey{
+	return &privKeyLibP2P{
 			PrivKey: sk,
-			suite:   ste,
-		}, &pubKey{
+			suite:   suite,
+		}, &pubKeyLibP2P{
 			PubKey: pk,
-			suite:  ste,
+			suite:  suite,
 		}, nil
 }
 
-func PrivateKeyFromBytes(keyType string, buf []byte) (PrivateKey, error) {
+func PrivateKeyFromBytes(keyType KeyType, buf []byte) (PrivateKey, error) {
 	var pk ic.PrivKey
 	var err error
-	switch strings.ToLower(keyType) {
-	case "ed25519":
+	switch keyType {
+	case Ed25519:
 		pk, err = ic.UnmarshalEd25519PrivateKey(buf)
-	case "secp256k1":
+	case Secp256k1:
 		pk, err = ic.UnmarshalSecp256k1PrivateKey(buf)
-	case "ecdsa":
+	case ECDSA:
 		pk, err = ic.UnmarshalECDSAPrivateKey(buf)
-	case "rsa":
-		pk, err = ic.UnmarshalRsaPrivateKey(buf)
+	// case "rsa":
+	// 	pk, err = ic.UnmarshalRsaPrivateKey(buf)
 	default:
 		return nil, ErrBadKeyType
 	}
@@ -241,33 +413,59 @@ func PrivateKeyFromBytes(keyType string, buf []byte) (PrivateKey, error) {
 }
 
 func PrivateKeyFromLibP2P(privkey ic.PrivKey) (PrivateKey, error) {
-	suite, err := SuiteForType(privkey.Type())
+	suite, err := SuiteForType(KeyType(privkey.Type()))
 	if err != nil {
 		return nil, err
 	}
 
-	return &privKey{
+	return &privKeyLibP2P{
 		PrivKey: privkey,
 		suite:   suite,
 	}, nil
 }
 
+func ToLibP2PPrivateKey(pk PrivateKey) ic.PrivKey {
+	return pk.(*privKeyLibP2P).PrivKey
+}
+
+func (p *privKeyLibP2P) Std() (gocrypto.PrivateKey, error) {
+	// our version of "standard" secp256k1 keys uses the
+	// dcred type directly, as its more common among our
+	// dependencies (like go-jose)
+	switch pk := p.PrivKey.(type) {
+	case *ic.Secp256k1PrivateKey:
+		return (*secp256k1.PrivateKey)(pk), nil
+	}
+
+	gokey, err := ic.PrivKeyToStdKey(p.PrivKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// convert ed25519 keys to non pointers
+	switch kt := gokey.(type) {
+	case *ed25519.PrivateKey:
+		return *kt, nil
+	}
+	return gokey, nil
+}
+
 // Scalar returns a numeric elliptic curve scalar
 // representation of the private key.
 //
-// WARNING: THIS ONLY WORDS WITH ED25519 & SECP256K1 CURVES RIGHT NOW.
-func (p *privKey) Scalar() kyber.Scalar {
+// WARNING: THIS ONLY WORKS WITH ED25519 & SECP256K1 CURVES RIGHT NOW.
+func (p *privKeyLibP2P) Scalar() kyber.Scalar {
 	switch p.Type() {
-	case icpb.KeyType_Ed25519:
+	case Ed25519:
 		return p.ed25519Scalar()
-	case icpb.KeyType_Secp256k1:
+	case Secp256k1:
 		return p.secp256k1Scalar()
 	default:
 		panic("only ed25519 and secp256k1 private key scalar conversion supported")
 	}
 }
 
-func (p *privKey) secp256k1Scalar() kyber.Scalar {
+func (p *privKeyLibP2P) secp256k1Scalar() kyber.Scalar {
 	buf, err := p.Raw()
 	if err != nil {
 		panic(err) // todo
@@ -276,7 +474,7 @@ func (p *privKey) secp256k1Scalar() kyber.Scalar {
 	return p.suite.Scalar().SetBytes(buf)
 }
 
-func (p *privKey) ed25519Scalar() kyber.Scalar {
+func (p *privKeyLibP2P) ed25519Scalar() kyber.Scalar {
 	// There is a discrepency between LibP2P private keys
 	// and "raw" EC scalars. LibP2P private keys is an
 	// (x, y) pair, where x is the given "seed" and y is
@@ -307,11 +505,36 @@ func (p *privKey) ed25519Scalar() kyber.Scalar {
 	return p.suite.Scalar().SetBytes(digest[:32])
 }
 
-func (p *privKey) GetPublic() PublicKey {
-	return &pubKey{
+func (p *privKeyLibP2P) GetPublic() PublicKey {
+	return &pubKeyLibP2P{
 		PubKey: p.PrivKey.GetPublic(),
 		suite:  p.suite,
 	}
+}
+
+func (p *privKeyLibP2P) MarshalJWK() ([]byte, error) {
+	goPubKey, err := ic.PrivKeyToStdKey(p.PrivKey)
+	if err != nil {
+		return nil, err
+	}
+	jPubKey, err := jwk.FromRaw(goPubKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(jPubKey)
+}
+
+func (p *privKeyLibP2P) Type() KeyType {
+	return KeyType(p.PrivKey.Type())
+}
+
+func (p *privKeyLibP2P) Equals(k1 Key) bool {
+	if p == k1 {
+		return true
+	}
+
+	return basicEquals(p, k1)
 }
 
 // DistKeyShare
@@ -333,7 +556,8 @@ func PublicKeyToBech32(pubkey PublicKey) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("getting public key bytes: %w", err)
 	}
-	return PublicKeyBytesToBech32(buf)
+	sum := tmhash.SumTruncated(buf)
+	return bech32.ConvertAndEncode("source", sum)
 }
 
 func PublicKeyBytesToBech32(pubkey []byte) (string, error) {
